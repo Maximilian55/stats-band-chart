@@ -1,10 +1,6 @@
 import powerbi from "powerbi-visuals-api";
 
 import {
-    valueFormatter
-} from "powerbi-visuals-utils-formattingutils";
-
-import {
     BandStatistics
 } from "../statistics";
 
@@ -17,6 +13,10 @@ import {
 } from "../utils/chartMath";
 
 import {
+    createValueFormatters
+} from "../formatting/valueFormatting";
+
+import {
     drawMarker
 } from "./markerRenderer";
 
@@ -26,11 +26,12 @@ import {
     drawCategorySeparator
 } from "./axisRenderer";
 
+import {
+    attachBandTooltip
+} from "./tooltipRenderer";
+
 import ITooltipService =
     powerbi.extensibility.ITooltipService;
-
-import VisualTooltipDataItem =
-    powerbi.extensibility.VisualTooltipDataItem;
 
 export interface ChartRenderOptions {
 
@@ -128,11 +129,10 @@ export function renderChart(
         * Formatter based on the Power BI
         * measure's format string.
         */
-    const formatter =
-        valueFormatter.create({
-            format: formatString
-        });
-
+    const formatters =
+        createValueFormatters(
+            formatString
+        );
     /*
         * Determine overall Y-axis range.
         */
@@ -201,7 +201,8 @@ export function renderChart(
         ,yMax
         ,majorStep
         ,yScale
-        ,formatter
+        ,formatter:
+            formatters.axis
         ,formattingSettings:
             formattingSettings
     });
@@ -475,97 +476,13 @@ export function renderChart(
             ,"default"
         );
 
-        lineHitTarget.addEventListener(
-            "mousemove"
-            ,(event: MouseEvent) => {
-                if (
-                    !tooltipService.enabled()
-                ) {
-                    return;
-                }
-
-                const tooltipData:
-                    VisualTooltipDataItem[] = [
-                        {
-                            displayName: "Category"
-                            ,value: categoryName
-                        }
-                        ,{
-                            displayName: "Min"
-                            ,value: formatter.format(
-                                stat.min
-                            )
-                        }
-                        ,{
-                            displayName: "P05"
-                            ,value: formatter.format(
-                                stat.p05
-                            )
-                        }
-                        ,{
-                            displayName: "P33"
-                            ,value: formatter.format(
-                                stat.p33
-                            )
-                        }
-                        ,{
-                            displayName: "P50"
-                            ,value: formatter.format(
-                                stat.p50
-                            )
-                        }
-                        ,{
-                            displayName: "Average"
-                            ,value: formatter.format(
-                                stat.average
-                            )
-                        }
-                        ,{
-                            displayName: "P67"
-                            ,value: formatter.format(
-                                stat.p67
-                            )
-                        }
-                        ,{
-                            displayName: "P95"
-                            ,value: formatter.format(
-                                stat.p95
-                            )
-                        }
-                        ,{
-                            displayName: "Max"
-                            ,value: formatter.format(
-                                stat.max
-                            )
-                        }
-                    ];
-
-                tooltipService.show({
-                    coordinates: [
-                        event.clientX
-                        ,event.clientY
-                    ]
-                    ,isTouchEvent: false
-                    ,dataItems: tooltipData
-                    ,identities: []
-                });
-            }
-        );
-
-        lineHitTarget.addEventListener(
-            "mouseout"
-            ,() => {
-                if (
-                    !tooltipService.enabled()
-                ) {
-                    return;
-                }
-                tooltipService.hide({
-                    isTouchEvent: false
-                    ,immediately: true
-                });
-            }
-        );
+        attachBandTooltip(
+            lineHitTarget
+            ,tooltipService
+            ,categoryName
+            ,stat
+            ,formatters.tooltip
+        )
 
         svg.appendChild(
             lineHitTarget
@@ -584,7 +501,7 @@ export function renderChart(
             ,categoryName
             ,"Min"
             ,stat.min
-            ,formatter
+            ,formatters.tooltip
             ,tooltipService
         );
 
@@ -601,7 +518,7 @@ export function renderChart(
             ,categoryName
             ,"Max"
             ,stat.max
-            ,formatter
+            ,formatters.tooltip
             ,tooltipService
         );
 
@@ -618,7 +535,7 @@ export function renderChart(
             ,categoryName
             ,"P5"
             ,stat.p05
-            ,formatter
+            ,formatters.tooltip
             ,tooltipService
             ,true
         );
@@ -636,7 +553,7 @@ export function renderChart(
             ,categoryName
             ,"P95"
             ,stat.p95
-            ,formatter
+            ,formatters.tooltip
             ,tooltipService
         );
 
@@ -653,7 +570,7 @@ export function renderChart(
             ,categoryName
             ,"P33"
             ,stat.p33
-            ,formatter
+            ,formatters.tooltip
             ,tooltipService
             ,true
         );
@@ -671,7 +588,7 @@ export function renderChart(
             ,categoryName
             ,"P67"
             ,stat.p67
-            ,formatter
+            ,formatters.tooltip
             ,tooltipService
         );
 
@@ -688,7 +605,7 @@ export function renderChart(
             ,categoryName
             ,"Median"
             ,stat.p50
-            ,formatter
+            ,formatters.tooltip
             ,tooltipService
         );
 
@@ -705,7 +622,7 @@ export function renderChart(
             ,categoryName
             ,"Average"
             ,stat.average
-            ,formatter
+            ,formatters.tooltip
             ,tooltipService
         );
 
