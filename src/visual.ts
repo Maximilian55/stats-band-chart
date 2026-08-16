@@ -4,24 +4,6 @@
 *  Copyright (c) Microsoft Corporation
 *  All rights reserved.
 *  MIT License
-*
-*  Permission is hereby granted, free of charge, to any person obtaining a copy
-*  of this software and associated documentation files (the ""Software""), to deal
-*  in the Software without restriction, including without limitation the rights
-*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-*  copies of the Software, and to permit persons to whom the Software is
-*  furnished to do so, subject to the following conditions:
-*
-*  The above copyright notice and this permission notice shall be included in
-*  all copies or substantial portions of the Software.
-*
-*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-*  THE SOFTWARE.
 */
 
 "use strict";
@@ -31,6 +13,7 @@ import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel
 import "./../style/visual.less";
 
 import { transformData } from "./dataTransform";
+import { calculateBandStatistics } from "./statistics";
 import { VisualFormattingSettingsModel } from "./settings";
 
 import VisualConstructorOptions =
@@ -55,8 +38,6 @@ export class Visual implements IVisual {
 
     constructor(options: VisualConstructorOptions) {
 
-        console.log("Visual constructor", options);
-
         this.events = options.host.eventService;
         this.target = options.element;
 
@@ -72,86 +53,152 @@ export class Visual implements IVisual {
 
             const dataView = options.dataViews?.[0];
 
-            // Clear the visual if no DataView exists.
             if (!dataView) {
-                this.target.innerHTML = "";
+                this.clearTarget();
                 this.events.renderingFinished(options);
                 return;
             }
 
-            // Populate formatting pane settings.
             this.formattingSettings =
                 this.formattingSettingsService.populateFormattingSettingsModel(
                     VisualFormattingSettingsModel,
                     dataView
                 );
 
-            // Transform the Power BI table into our internal data model.
             const data = transformData(dataView);
 
-            // Required fields have not yet been supplied.
             if (!data) {
 
-                this.target.innerHTML = `
-                    <div class="bandChartMessage">
-                        Add at least one X Axis field,
-                        one Grain field,
-                        and one Measure.
-                    </div>
-                `;
+                this.showMessage(
+                    "Add at least one X Axis field, one Grain field, and one Measure."
+                );
 
                 this.events.renderingFinished(options);
                 return;
             }
 
-            console.log("Band chart data", data);
+            const statistics =
+                calculateBandStatistics(data);
+
+            if (statistics.length === 0) {
+
+                this.showMessage(
+                    "No valid numeric observations were returned."
+                );
+
+                this.events.renderingFinished(options);
+                return;
+            }
+
+            this.clearTarget();
+
+            const container =
+                document.createElement("div");
+
+            container.className =
+                "bandChartDebug";
 
             /*
-             * Temporary output.
-             *
-             * This lets us verify that Power BI is returning the
-             * expected X Axis, Grain, and Measure fields before
-             * we build the actual band chart.
+             * Header
              */
-            this.target.innerHTML = `
-                <div class="bandChartDebug">
 
-                    <div>
-                        <strong>X Axis:</strong>
-                        ${data.xColumns
-                            .map(column => column.displayName)
-                            .join(" > ")}
-                    </div>
+            this.appendDataRow(
+                container,
+                "X Axis",
+                data.xColumns
+                    .map(column => column.displayName)
+                    .join(" > ")
+            );
 
-                    <div>
-                        <strong>Grain:</strong>
-                        ${data.grainColumn.displayName}
-                    </div>
+            this.appendDataRow(
+                container,
+                "Grain",
+                data.grainColumn.displayName
+            );
 
-                    <div>
-                        <strong>Measure:</strong>
-                        ${data.measureColumn.displayName}
-                    </div>
+            this.appendDataRow(
+                container,
+                "Measure",
+                data.measureColumn.displayName
+            );
 
-                    <div>
-                        <strong>Observation count:</strong>
-                        ${data.rows.length}
-                    </div>
+            this.appendDataRow(
+                container,
+                "Observation count",
+                data.rows.length.toString()
+            );
 
-                </div>
-            `;
+            this.appendDataRow(
+                container,
+                "Band count",
+                statistics.length.toString()
+            );
+
+            /*
+             * Add spacing before statistics.
+             */
+
+            const separator =
+                document.createElement("hr");
+
+            container.appendChild(separator);
+
+            /*
+             * Display statistics for each X Axis group.
+             *
+             * This is temporary validation output.
+             * Later this section will be replaced by the
+             * SVG band chart renderer.
+             */
+
+            for (const stat of statistics) {
+
+                const group =
+                    document.createElement("div");
+
+                group.className =
+                    "bandChartStatGroup";
+
+                const title =
+                    document.createElement("strong");
+
+                title.textContent =
+                    stat.xValues.join(" > ");
+
+                group.appendChild(title);
+
+                const values =
+                    document.createElement("div");
+
+                values.textContent =
+                    `Min: ${stat.min.toFixed(2)} | ` +
+                    `P5: ${stat.p05.toFixed(2)} | ` +
+                    `P33: ${stat.p33.toFixed(2)} | ` +
+                    `P50: ${stat.p50.toFixed(2)} | ` +
+                    `Avg: ${stat.average.toFixed(2)} | ` +
+                    `P67: ${stat.p67.toFixed(2)} | ` +
+                    `P95: ${stat.p95.toFixed(2)} | ` +
+                    `Max: ${stat.max.toFixed(2)}`;
+
+                group.appendChild(values);
+
+                container.appendChild(group);
+            }
+
+            this.target.appendChild(container);
 
             this.events.renderingFinished(options);
         }
         catch (error) {
 
-            console.error("Error in update method", error);
+            console.error(
+                "Error in update method",
+                error
+            );
 
-            this.target.innerHTML = `
-                <div class="bandChartMessage">
-                    Unable to render visual.
-                </div>
-            `;
+            this.showMessage(
+                "Unable to render visual."
+            );
 
             this.events.renderingFailed(
                 options,
@@ -161,13 +208,80 @@ export class Visual implements IVisual {
     }
 
     /**
-     * Returns properties pane formatting model content hierarchies,
-     * properties and latest formatting values.
+     * Removes all existing elements
+     * from the visual container.
      */
-    public getFormattingModel(): powerbi.visuals.FormattingModel {
+    private clearTarget(): void {
 
-        return this.formattingSettingsService.buildFormattingModel(
-            this.formattingSettings
-        );
+        while (this.target.firstChild) {
+
+            this.target.removeChild(
+                this.target.firstChild
+            );
+        }
+    }
+
+    /**
+     * Displays a simple message inside
+     * the visual.
+     */
+    private showMessage(
+        message: string
+    ): void {
+
+        this.clearTarget();
+
+        const element =
+            document.createElement("div");
+
+        element.className =
+            "bandChartMessage";
+
+        element.textContent =
+            message;
+
+        this.target.appendChild(element);
+    }
+
+    /**
+     * Adds a label/value row to
+     * the supplied container.
+     */
+    private appendDataRow(
+        parent: HTMLElement,
+        label: string,
+        value: string
+    ): void {
+
+        const row =
+            document.createElement("div");
+
+        const labelElement =
+            document.createElement("strong");
+
+        labelElement.textContent =
+            `${label}: `;
+
+        const valueElement =
+            document.createTextNode(value);
+
+        row.appendChild(labelElement);
+        row.appendChild(valueElement);
+
+        parent.appendChild(row);
+    }
+
+    /**
+     * Returns properties pane formatting model
+     * content hierarchies, properties, and
+     * latest formatting values.
+     */
+    public getFormattingModel():
+        powerbi.visuals.FormattingModel {
+
+        return this.formattingSettingsService
+            .buildFormattingModel(
+                this.formattingSettings
+            );
     }
 }
