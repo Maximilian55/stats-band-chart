@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Power BI build/package output
+dist/
+.tmp/
+.temp/
+
+# Generated webpack analysis
+webpack.statistics*.html
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local certificates / keys
+*.pfx
+*.pem
+*.key
+*.cer
+*.crt
+
+# Environment files
+.env
+.env.*
+
+# VS Code local settings
+.vscode/
+
+# JetBrains
+.idea/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Coverage
+coverage/

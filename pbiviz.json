@@ -1,0 +1,26 @@
+{
+    "visual": {
+        "name": "statsbandchart"
+        ,"displayName": "stats_band_chart"
+        ,"guid": "statsbandchartB6B5FB64DEAC417AA3B742CA69082202"
+        ,"visualClassName": "Visual"
+        ,"version": "1.0.0.0"
+        ,"description": "Statistical Band Chart"
+        ,"supportUrl": "https://github.com/Maximilian55/stats-band-chart"
+        ,"gitHubUrl": "https://github.com/Maximilian55/stats-band-chart"
+    }
+    ,"apiVersion": "5.11.1"
+    ,"author": {
+        "name": "Max W"
+        ,"email": "MaximilianAWilliamson@gmail.com"
+    }
+    ,"assets": {
+        "icon": "assets/icon.png"
+    }
+    ,"externalJS": null
+    ,"style": "style/visual.less"
+    ,"capabilities": "capabilities.json"
+    ,"dependencies": null
+    ,"stringResources": []
+    ,"version": "1.0.0.0"
+}
