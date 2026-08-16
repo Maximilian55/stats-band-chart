@@ -37,6 +37,10 @@ import {
 } from "./legendRenderer";
 
 import {
+    drawObservations
+} from "./observationRenderer"
+
+import {
     createSvgElement
     ,setSvgAttributes
 } from "../utils/svgUtils"
@@ -162,6 +166,12 @@ export function renderChart(
             ,xAxisRotation
         );
 
+    const showStatistics =
+        formattingSettings
+            .points
+            .showStatistics
+            .value;
+
     const showLegend =
         formattingSettings
             .legend
@@ -176,6 +186,7 @@ export function renderChart(
 
     const legendHeight =
         showLegend
+        && showStatistics
             ? 35
             : 0;
 
@@ -393,7 +404,7 @@ export function renderChart(
         );
 
 
-    if (showLegend) {
+    if (showLegend && showStatistics) {
         drawLegend({
             svg
             ,items: [
@@ -522,136 +533,150 @@ export function renderChart(
             lineHitTarget
         );
 
-        /*
-            * Min
-            */
-        drawMarker(
-            svg
-            ,x
-            ,yScale(stat.min)
-            ,pointSize
-            ,minMaxStyle
-            ,categoryName
-            ,"Min"
-            ,stat.min
-            ,formatters.tooltip
-            ,tooltipService
-        );
+        if (showStatistics) {
+            /*
+                * Min
+                */
+            drawMarker(
+                svg
+                ,x
+                ,yScale(stat.min)
+                ,pointSize
+                ,minMaxStyle
+                ,categoryName
+                ,"Min"
+                ,stat.min
+                ,formatters.tooltip
+                ,tooltipService
+            );
 
-        /*
-            * Max
-            */
-        drawMarker(
-            svg
-            ,x
-            ,yScale(stat.max)
-            ,pointSize
-            ,minMaxStyle
-            ,categoryName
-            ,"Max"
-            ,stat.max
-            ,formatters.tooltip
-            ,tooltipService
-        );
+            /*
+                * Max
+                */
+            drawMarker(
+                svg
+                ,x
+                ,yScale(stat.max)
+                ,pointSize
+                ,minMaxStyle
+                ,categoryName
+                ,"Max"
+                ,stat.max
+                ,formatters.tooltip
+                ,tooltipService
+            );
 
-        /*
-            * P5 - inverted
-            */
-        drawMarker(
-            svg
-            ,x
-            ,yScale(stat.p05)
-            ,pointSize
-            ,p5p95Style
-            ,categoryName
-            ,"P5"
-            ,stat.p05
-            ,formatters.tooltip
-            ,tooltipService
-            ,true
-        );
+            /*
+                * P5 - inverted
+                */
+            drawMarker(
+                svg
+                ,x
+                ,yScale(stat.p05)
+                ,pointSize
+                ,p5p95Style
+                ,categoryName
+                ,"P5"
+                ,stat.p05
+                ,formatters.tooltip
+                ,tooltipService
+                ,true
+            );
 
-        /*
-            * P95
-            */
-        drawMarker(
-            svg
-            ,x
-            ,yScale(stat.p95)
-            ,pointSize
-            ,p5p95Style
-            ,categoryName
-            ,"P95"
-            ,stat.p95
-            ,formatters.tooltip
-            ,tooltipService
-        );
+            /*
+                * P95
+                */
+            drawMarker(
+                svg
+                ,x
+                ,yScale(stat.p95)
+                ,pointSize
+                ,p5p95Style
+                ,categoryName
+                ,"P95"
+                ,stat.p95
+                ,formatters.tooltip
+                ,tooltipService
+            );
 
-        /*
-            * P33 - inverted
-            */
-        drawMarker(
-            svg
-            ,x
-            ,yScale(stat.p33)
-            ,pointSize
-            ,p33p67Style
-            ,categoryName
-            ,"P33"
-            ,stat.p33
-            ,formatters.tooltip
-            ,tooltipService
-            ,true
-        );
+            /*
+                * P33 - inverted
+                */
+            drawMarker(
+                svg
+                ,x
+                ,yScale(stat.p33)
+                ,pointSize
+                ,p33p67Style
+                ,categoryName
+                ,"P33"
+                ,stat.p33
+                ,formatters.tooltip
+                ,tooltipService
+                ,true
+            );
 
-        /*
-            * P67
-            */
-        drawMarker(
-            svg
-            ,x
-            ,yScale(stat.p67)
-            ,pointSize
-            ,p33p67Style
-            ,categoryName
-            ,"P67"
-            ,stat.p67
-            ,formatters.tooltip
-            ,tooltipService
-        );
+            /*
+                * P67
+                */
+            drawMarker(
+                svg
+                ,x
+                ,yScale(stat.p67)
+                ,pointSize
+                ,p33p67Style
+                ,categoryName
+                ,"P67"
+                ,stat.p67
+                ,formatters.tooltip
+                ,tooltipService
+            );
 
-        /*
-            * Median
-            */
-        drawMarker(
-            svg
-            ,x
-            ,yScale(stat.p50)
-            ,pointSize
-            ,medianStyle
-            ,categoryName
-            ,"Median"
-            ,stat.p50
-            ,formatters.tooltip
-            ,tooltipService
-        );
+            /*
+                * Median
+                */
+            drawMarker(
+                svg
+                ,x
+                ,yScale(stat.p50)
+                ,pointSize
+                ,medianStyle
+                ,categoryName
+                ,"Median"
+                ,stat.p50
+                ,formatters.tooltip
+                ,tooltipService
+            );
 
-        /*
-            * Average
-            */
-        drawMarker(
-            svg
-            ,x
-            ,yScale(stat.average)
-            ,pointSize
-            ,averageStyle
-            ,categoryName
-            ,"Average"
-            ,stat.average
-            ,formatters.tooltip
-            ,tooltipService
-        );
+            /*
+                * Average
+                */
+            drawMarker(
+                svg
+                ,x
+                ,yScale(stat.average)
+                ,pointSize
+                ,averageStyle
+                ,categoryName
+                ,"Average"
+                ,stat.average
+                ,formatters.tooltip
+                ,tooltipService
+            );
 
+        }
+        else {
+            drawObservations({
+                svg
+                ,x
+                ,observations:
+                    stat.observations
+                ,yScale
+                ,size: pointSize
+                ,color: lineColor
+                ,selectionManager
+            });
+        }
         /*
             * X-axis label.
             */

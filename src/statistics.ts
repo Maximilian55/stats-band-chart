@@ -2,6 +2,13 @@ import { BandChartData } from "./dataModel";
 
 import powerbi from "powerbi-visuals-api";
 
+export interface BandObservation {
+    value: number;
+
+    selectionId:
+        powerbi.visuals.ISelectionId;
+}
+
 export interface BandStatistics {
     xValues: string[];
 
@@ -13,6 +20,8 @@ export interface BandStatistics {
     p67: number;
     p95: number;
     max: number;
+
+    observations: BandObservation[];
     selectionIds: powerbi.visuals.ISelectionId[];
 }
 
@@ -22,9 +31,7 @@ export function calculateBandStatistics(
 
     const groups = new Map<string, {
         xValues: string[];
-        values: number[];
-        selectionIds:
-            powerbi.visuals.ISelectionId[];
+        observations: BandObservation[];
     }>();
 
     for (const row of data.rows) {
@@ -42,25 +49,44 @@ export function calculateBandStatistics(
         if (!group) {
             group = {
                 xValues
-                ,values: []
-                ,selectionIds: []
+                ,observations: []
             };
 
             groups.set(key, group);
         }
 
-        group.values.push(row.value);
-
-        group.selectionIds.push(row.selectionId);
+        group.observations.push({
+            value: row.value
+            ,selectionId: row.selectionId
+        });
     }
 
     const results: BandStatistics[] = [];
 
     for (const group of groups.values()) {
 
-        const values = group.values
-            .filter(value => Number.isFinite(value))
-            .sort((a, b) => a - b);
+        const observations =
+            group.observations
+                .filter(
+                    observation =>
+                        Number.isFinite(
+                            observation.value
+                        )
+                );
+        
+        const values =
+                observations
+                    .map(
+                        observation =>
+                            observation.value
+                    )
+                    .sort(
+                        (
+                            a
+                            ,b
+                        ) =>
+                            a - b
+                    );
 
         if (values.length === 0) {
             continue;
@@ -72,7 +98,11 @@ export function calculateBandStatistics(
 
         results.push({
             xValues: group.xValues
-            ,selectionIds: group.selectionIds
+            ,observations
+            ,selectionIds:
+                observations.map(
+                    observation => observation.selectionId
+                )
             ,min: values[0]
             ,p05: percentile(values, 0.05)
             ,p33: percentile(values, 0.33)

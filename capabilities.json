@@ -42,6 +42,11 @@
                         "numeric": true
                     }
                 }
+                ,"showStatistics": {
+                    "type": {
+                        "bool": true
+                    }
+                }
             }
         }
         ,"minMax": {

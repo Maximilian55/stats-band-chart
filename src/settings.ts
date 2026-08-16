@@ -133,11 +133,18 @@ export class PointSettings extends FormattingSettingsCard {
         ,value: 4
     });
 
+    public showStatistics = new formattingSettings.ToggleSwitch({
+        name: "showStatistics"
+        ,displayName: "Show Statistics"
+        ,value: true
+    });
+
     public name: string = "points";
-    public displayName: string = "Point Size";
+    public displayName: string = "Points";
 
     public slices: FormattingSettingsSlice[] = [
         this.pointSize
+        ,this.showStatistics
     ];
 }
 
