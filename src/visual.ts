@@ -33,7 +33,8 @@ import {
 } from "./rendering/markerRenderer"
 
 import {
-    drawCategorySeparator
+    drawCategorySeparator,
+    drawYAxis
 } from "./rendering/axisRenderer"
 
 import VisualConstructorOptions =
@@ -500,283 +501,25 @@ export class Visual implements IVisual {
             );
         };
 
-        /*
-         * Y axis and gridlines.
-         */
-        if (
-            this.formattingSettings
-                .yAxis
-                .show
-                .value
-        ) {
+        drawYAxis({
+            svg
+            ,width
+            ,marginLeft:
+                margin.left
+            ,marginRight:
+                margin.right
+            ,marginTop:
+                margin.top
+            ,chartHeight
+            ,yMin
+            ,yMax
+            ,majorStep
+            ,yScale
+            ,formatter
+            ,formattingSettings:
+                this.formattingSettings
+        });
 
-            for (
-                let tickValue = yMin;
-                tickValue <= yMax + majorStep * 0.001;
-                tickValue += majorStep
-            ) {
-                const y =
-                    yScale(
-                        tickValue
-                    );
-
-                /*
-                 * Gridline
-                 */
-                if (
-                    this.formattingSettings
-                        .yAxis
-                        .gridlines
-                        .value
-                ) {
-
-                    const gridline =
-                        document.createElementNS(
-                            svgNamespace
-                            ,"line"
-                        );
-
-                    gridline.setAttribute(
-                        "x1"
-                        ,margin.left.toString()
-                    );
-
-                    gridline.setAttribute(
-                        "x2"
-                        ,(
-                            width -
-                            margin.right
-                        ).toString()
-                    );
-
-                    gridline.setAttribute(
-                        "y1"
-                        ,y.toString()
-                    );
-
-                    gridline.setAttribute(
-                        "y2"
-                        ,y.toString()
-                    );
-
-                    gridline.setAttribute(
-                        "stroke"
-                        ,"#D9D9D9"
-                    );
-
-                    gridline.setAttribute(
-                        "stroke-width"
-                        ,"1"
-                    );
-
-                    svg.appendChild(
-                        gridline
-                    );
-                }
-
-                if (
-                    this.formattingSettings
-                        .yAxis
-                        .minorGridlines
-                        .value
-                ) {
-                    const minorValue =
-                        tickValue +
-                        majorStep / 2;
-
-                    if (
-                        minorValue < yMax
-                    ) {
-                        const minorY =
-                            yScale(
-                                minorValue
-                            );
-
-                        const minorLine =
-                            document.createElementNS(
-                                svgNamespace
-                                ,"line"
-                            );
-                        
-                        minorLine.setAttribute(
-                            "x1"
-                            ,margin.left.toString()
-                        );
-
-                        minorLine.setAttribute(
-                            "x2"
-                            ,(
-                                width - margin.right
-                            ).toString()
-                        );
-
-                        minorLine.setAttribute(
-                            "y1"
-                            ,minorY.toString()
-                        );
-
-                        minorLine.setAttribute(
-                            "y2"
-                            ,minorY.toString()
-                        );
-
-                        minorLine.setAttribute(
-                            "stroke"
-                            ,"#EEEEEE"
-                        );
-
-                        minorLine.setAttribute(
-                            "stroke-width"
-                            ,"1"
-                        );
-
-                        svg.appendChild(
-                            minorLine
-                        );
-                    }
-                }
-
-                /*
-                 * Tick mark
-                 */
-                const tick =
-                    document.createElementNS(
-                        svgNamespace
-                        ,"line"
-                    );
-
-                tick.setAttribute(
-                    "x1"
-                    ,(
-                        margin.left - 5
-                    ).toString()
-                );
-
-                tick.setAttribute(
-                    "x2"
-                    ,margin.left.toString()
-                );
-
-                tick.setAttribute(
-                    "y1"
-                    ,y.toString()
-                );
-
-                tick.setAttribute(
-                    "y2"
-                    ,y.toString()
-                );
-
-                tick.setAttribute(
-                    "stroke"
-                    ,"#666666"
-                );
-
-                tick.setAttribute(
-                    "stroke-width"
-                    ,"1"
-                );
-
-                svg.appendChild(
-                    tick
-                );
-
-                /*
-                 * Y-axis tick label
-                 */
-                const label =
-                    document.createElementNS(
-                        svgNamespace
-                        ,"text"
-                    );
-
-                label.setAttribute(
-                    "x"
-                    ,(
-                        margin.left - 10
-                    ).toString()
-                );
-
-                label.setAttribute(
-                    "y"
-                    ,y.toString()
-                );
-
-                label.setAttribute(
-                    "text-anchor"
-                    ,"end"
-                );
-
-                label.setAttribute(
-                    "dominant-baseline"
-                    ,"middle"
-                );
-
-                label.setAttribute(
-                    "font-size"
-                    ,this.formattingSettings
-                        .yAxis
-                        .fontSize
-                        .value
-                        .toString()
-                );
-
-                label.textContent =
-                    formatter.format(
-                        tickValue
-                    );
-
-                svg.appendChild(
-                    label
-                );
-            }
-
-            /*
-             * Y-axis vertical line
-             */
-            const axisLine =
-                document.createElementNS(
-                    svgNamespace
-                    ,"line"
-                );
-
-            axisLine.setAttribute(
-                "x1"
-                ,margin.left.toString()
-            );
-
-            axisLine.setAttribute(
-                "x2"
-                ,margin.left.toString()
-            );
-
-            axisLine.setAttribute(
-                "y1"
-                ,margin.top.toString()
-            );
-
-            axisLine.setAttribute(
-                "y2"
-                ,(
-                    margin.top +
-                    chartHeight
-                ).toString()
-            );
-
-            axisLine.setAttribute(
-                "stroke"
-                ,"#666666"
-            );
-
-            axisLine.setAttribute(
-                "stroke-width"
-                ,"1"
-            );
-
-            svg.appendChild(
-                axisLine
-            );
-        }
 
         /*
          * Equal X spacing.
