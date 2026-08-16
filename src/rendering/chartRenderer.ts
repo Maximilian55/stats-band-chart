@@ -10,6 +10,7 @@ import {
 
 import {
     getNiceStep
+    ,estimateRotatedTextHeight
 } from "../utils/chartMath";
 
 import {
@@ -18,7 +19,7 @@ import {
 
 import {
     drawMarker
-    ,MarkerStyle
+    ,createMarkerStyle
 } from "./markerRenderer";
 
 import {
@@ -122,22 +123,76 @@ export function renderChart(
         * the Y-axis needs room for labels.
         */
 
+    const xAxisFontSize =
+        formattingSettings
+            .xAxis
+            .fontSize
+            .value;
+
+    const xAxisRotation =
+        formattingSettings
+            .xAxis
+            .labelRotation
+            .value;
+
+    const longestLabel =
+        statistics
+            .map(
+                stat =>
+                    stat.xValues.join(
+                        " > "
+                    )
+            )
+            .reduce(
+                (
+                    longest
+                    ,current
+                ) =>
+                    current.length
+                    > longest.length
+                        ? current
+                        : longest
+                ,""
+            );
+
+    const rotatedLabelHeight =
+        estimateRotatedTextHeight(
+            longestLabel
+            ,xAxisFontSize
+            ,xAxisRotation
+        );
+
     const showLegend =
         formattingSettings
             .legend
             .show
             .value;
 
+    const xLabelTopPadding =
+        20;
+
+    const xLabelBottomPadding =
+        15;
+
+    const legendHeight =
+        showLegend
+            ? 35
+            : 0;
+
+    const bottomMargin =
+        xLabelTopPadding
+        + rotatedLabelHeight
+        + xLabelBottomPadding
+        + legendHeight;
+
+
     const margin = {
         top: 20
         ,right: 20
-        ,bottom:
-            showLegend
-                ? 110
-                : 80
+        ,bottom: bottomMargin
         ,left: 80
     };
-
+        
     const chartWidth =
         width -
         margin.left -
@@ -154,6 +209,19 @@ export function renderChart(
     ) {
         return;
     }
+
+    const plotBottom =
+        margin.top
+        + chartHeight;
+
+    const xAxisLabelY =
+        plotBottom
+        + xLabelTopPadding;
+
+    const legendY =
+        xAxisLabelY
+        + rotatedLabelHeight
+        + xLabelBottomPadding;
 
     /*
         * Formatter based on the Power BI
@@ -299,212 +367,31 @@ export function renderChart(
             .pointSize
             .value;
 
-    const minMaxStyle:
-        MarkerStyle = {
-            fillColor:
-                formattingSettings
-                    .minMax
-                    .color
-                    .value
-                    .value
-            ,fillTransparency:
-                formattingSettings
-                    .minMax
-                    .fillTransparency
-                    .value
-            ,borderColor:
-                formattingSettings
-                    .minMax
-                    .borderColor
-                    .value
-                    .value
-            ,borderTransparency:
-                formattingSettings
-                    .minMax
-                    .borderTransparency
-                    .value
-            ,borderWidth:
-                formattingSettings
-                    .minMax
-                    .borderWidth
-                    .value
-            ,shape:
-                String(
-                    formattingSettings
-                        .minMax
-                        .shape
-                        .value
-                        .value
-                )
-        };
+    const minMaxStyle =
+        createMarkerStyle(
+            formattingSettings.minMax
+        );
 
-    const p5p95Style:
-        MarkerStyle = {
-            fillColor:
-                formattingSettings
-                    .p5p95
-                    .color
-                    .value
-                    .value
-            ,fillTransparency:
-                formattingSettings
-                    .p5p95
-                    .fillTransparency
-                    .value
-            ,borderColor:
-                formattingSettings
-                    .p5p95
-                    .borderColor
-                    .value
-                    .value
-            ,borderTransparency:
-                formattingSettings
-                    .p5p95
-                    .borderTransparency
-                    .value
-            ,borderWidth:
-                formattingSettings
-                    .p5p95
-                    .borderWidth
-                    .value
-            ,shape:
-                String(
-                    formattingSettings
-                        .p5p95
-                        .shape
-                        .value
-                        .value
-                )
-        };
+    const p5p95Style =
+        createMarkerStyle(
+            formattingSettings.p5p95
+        );
 
-    const p33p67Style:
-        MarkerStyle = {
-            fillColor:
-                formattingSettings
-                    .p33p67
-                    .color
-                    .value
-                    .value
-            ,fillTransparency:
-                formattingSettings
-                    .p33p67
-                    .fillTransparency
-                    .value
-            ,borderColor:
-                formattingSettings
-                    .p33p67
-                    .borderColor
-                    .value
-                    .value
-            ,borderTransparency:
-                formattingSettings
-                    .p33p67
-                    .borderTransparency
-                    .value
-            ,borderWidth:
-                formattingSettings
-                    .p33p67
-                    .borderWidth
-                    .value
-            ,shape:
-                String(
-                    formattingSettings
-                        .p33p67
-                        .shape
-                        .value
-                        .value
-                )
-        };
+    const p33p67Style =
+        createMarkerStyle(
+            formattingSettings.p33p67
+        );
 
-    const medianStyle:
-        MarkerStyle = {
-            fillColor:
-                formattingSettings
-                    .median
-                    .color
-                    .value
-                    .value
-            ,fillTransparency:
-                formattingSettings
-                    .median
-                    .fillTransparency
-                    .value
-            ,borderColor:
-                formattingSettings
-                    .median
-                    .borderColor
-                    .value
-                    .value
-            ,borderTransparency:
-                formattingSettings
-                    .median
-                    .borderTransparency
-                    .value
-            ,borderWidth:
-                formattingSettings
-                    .median
-                    .borderWidth
-                    .value
-            ,shape:
-                String(
-                    formattingSettings
-                        .median
-                        .shape
-                        .value
-                        .value
-                )
-        };
+    const medianStyle =
+        createMarkerStyle(
+            formattingSettings.median
+        );
 
-    const averageStyle:
-        MarkerStyle = {
-            fillColor:
-                formattingSettings
-                    .average
-                    .color
-                    .value
-                    .value
-            ,fillTransparency:
-                formattingSettings
-                    .average
-                    .fillTransparency
-                    .value
-            ,borderColor:
-                formattingSettings
-                    .average
-                    .borderColor
-                    .value
-                    .value
-            ,borderTransparency:
-                formattingSettings
-                    .average
-                    .borderTransparency
-                    .value
-            ,borderWidth:
-                formattingSettings
-                    .average
-                    .borderWidth
-                    .value
-            ,shape:
-                String(
-                    formattingSettings
-                        .average
-                        .shape
-                        .value
-                        .value
-                )
-        };
+    const averageStyle =
+        createMarkerStyle(
+            formattingSettings.average
+        );
 
-    const xAxisFontSize =
-        formattingSettings
-            .xAxis
-            .fontSize
-            .value;
-
-    const xAxisRotation =
-        formattingSettings
-            .xAxis
-            .labelRotation
-            .value;
 
     if (showLegend) {
         drawLegend({
@@ -532,7 +419,7 @@ export function renderChart(
                 }
             ]
             ,width
-            ,y: height - 30
+            ,y: legendY
             ,fontSize:
                 formattingSettings
                     .legend
@@ -818,15 +705,11 @@ export function renderChart(
         /*
             * X-axis label.
             */
-        const labelY =
-            margin.top +
-            chartHeight +
-            20;
 
         drawXAxisLabel({
             svg
             ,x
-            ,y: labelY
+            ,y: xAxisLabelY
             ,text: categoryName
             ,rotation: xAxisRotation
             ,fontSize: xAxisFontSize

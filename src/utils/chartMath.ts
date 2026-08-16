@@ -50,3 +50,34 @@ export function getNiceStep(
         );
 
 }
+
+export function estimateRotatedTextHeight(
+    text: string
+    ,fontSize: number
+    ,rotation: number
+): number {
+
+    const estimatedWidth =
+        text.length
+        * fontSize
+        * 0.6;
+
+    const radians =
+        Math.abs(
+            rotation
+        )
+        * Math.PI
+        / 180;
+
+    return (
+        Math.sin(
+            radians
+        )
+        * estimatedWidth
+        +
+        Math.cos(
+            radians
+        )
+        * fontSize
+    );
+}

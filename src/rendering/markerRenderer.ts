@@ -26,6 +26,50 @@ export interface MarkerStyle {
     shape: string;
 }
 
+export function createMarkerStyle(
+    settings: {
+        color: {
+            value: {
+                value: string;
+            };
+        };
+
+        fillTransparency: {
+            value: number;
+        };
+
+        borderColor: {
+            value: {
+                value: string;
+            };
+        };
+
+        borderTransparency: {
+            value: number;
+        };
+
+        borderWidth: {
+            value: number;
+        };
+
+        shape: {
+            value: {
+                value: string | number;
+            };
+        };
+    }
+): MarkerStyle {
+
+    return {
+        fillColor: settings.color.value.value
+        ,fillTransparency: settings.fillTransparency.value
+        ,borderColor: settings.borderColor.value.value
+        ,borderTransparency: settings.borderTransparency.value
+        ,borderWidth: settings.borderWidth.value
+        ,shape: String(settings.shape.value.value)
+    };
+}
+
 export function drawMarker(
     svg: SVGSVGElement
     ,x: number

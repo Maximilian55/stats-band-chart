@@ -25,10 +25,8 @@ export function drawCategorySeparator(
         `L ${x} ${bottom}`;
 
     if (angled) {
-        
         const extension =
             18;
-
         pathData +=
             ` L ${x + extension} ${bottom + extension}`
     }
@@ -76,11 +74,9 @@ export interface YAxisRenderOptions {
         value: number
     ) => number;
 
-    formatter:
-        valueFormatter.IValueFormatter;
+    formatter: valueFormatter.IValueFormatter;
 
-    formattingSettings:
-        VisualFormattingSettingsModel;
+    formattingSettings: VisualFormattingSettingsModel;
 }
 
 export function drawYAxis(
