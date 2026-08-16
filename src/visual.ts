@@ -10,6 +10,8 @@
 
 import powerbi from "powerbi-visuals-api";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
+import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
+
 import "./../style/visual.less";
 
 import { transformData } from "./dataTransform";
@@ -37,6 +39,12 @@ import IVisualHost =
 import IVisualEventService =
     powerbi.extensibility.IVisualEventService;
 
+import ITooltipService =
+    powerbi.extensibility.ITooltipService;
+
+import VisualTooltipDataItem =
+    powerbi.extensibility.VisualTooltipDataItem;
+
 import DataView =
     powerbi.DataView;
 
@@ -44,6 +52,7 @@ export class Visual implements IVisual {
 
     private host: IVisualHost;
     private events: IVisualEventService;
+    private tooltipService: ITooltipService;
     private target: HTMLElement;
 
     private formattingSettings: VisualFormattingSettingsModel;
@@ -53,6 +62,7 @@ export class Visual implements IVisual {
 
         this.host = options.host;
         this.events = options.host.eventService;
+        this.tooltipService = options.host.tooltipService;
         this.target = options.element;
 
         this.formattingSettingsService =
@@ -83,24 +93,66 @@ export class Visual implements IVisual {
             this.applyThemeDefaults(dataView);
 
             /*
-             * Keep numeric formatting values
-             * within reasonable limits.
+             * Clamp numeric formatting values.
              */
+
             this.formattingSettings.line.lineThickness.value =
                 Math.max(
-                    1,
-                    Math.min(
-                        10,
-                        this.formattingSettings.line.lineThickness.value
+                    1
+                    ,Math.min(
+                        10
+                        ,this.formattingSettings
+                            .line
+                            .lineThickness
+                            .value
                     )
                 );
 
             this.formattingSettings.points.pointSize.value =
                 Math.max(
-                    1,
-                    Math.min(
-                        20,
-                        this.formattingSettings.points.pointSize.value
+                    1
+                    ,Math.min(
+                        20
+                        ,this.formattingSettings
+                            .points
+                            .pointSize
+                            .value
+                    )
+                );
+
+            this.formattingSettings.xAxis.fontSize.value =
+                Math.max(
+                    6
+                    ,Math.min(
+                        40
+                        ,this.formattingSettings
+                            .xAxis
+                            .fontSize
+                            .value
+                    )
+                );
+
+            this.formattingSettings.xAxis.labelRotation.value =
+                Math.max(
+                    -90
+                    ,Math.min(
+                        90
+                        ,this.formattingSettings
+                            .xAxis
+                            .labelRotation
+                            .value
+                    )
+                );
+
+            this.formattingSettings.yAxis.fontSize.value =
+                Math.max(
+                    6
+                    ,Math.min(
+                        40
+                        ,this.formattingSettings
+                            .yAxis
+                            .fontSize
+                            .value
                     )
                 );
 
@@ -132,9 +184,10 @@ export class Visual implements IVisual {
             }
 
             this.renderChart(
-                statistics,
-                options.viewport.width,
-                options.viewport.height
+                statistics
+                ,options.viewport.width
+                ,options.viewport.height
+                ,data.measureColumn.format
             );
 
             this.events.renderingFinished(options);
@@ -142,8 +195,8 @@ export class Visual implements IVisual {
         catch (error) {
 
             console.error(
-                "Error in update method",
-                error
+                "Error in update method"
+                ,error
             );
 
             this.showMessage(
@@ -151,15 +204,16 @@ export class Visual implements IVisual {
             );
 
             this.events.renderingFailed(
-                options,
-                String(error)
+                options
+                ,String(error)
             );
         }
     }
 
     /**
-     * Apply colors from the current Power BI report theme
-     * unless the user has explicitly formatted the property.
+     * Apply colors from the current Power BI theme
+     * unless the user has explicitly formatted
+     * that property.
      */
     private applyThemeDefaults(
         dataView: DataView
@@ -200,9 +254,9 @@ export class Visual implements IVisual {
 
         if (
             !this.hasFormattingProperty(
-                dataView,
-                "line",
-                "lineColor"
+                dataView
+                ,"line"
+                ,"lineColor"
             )
         ) {
             this.formattingSettings
@@ -215,9 +269,9 @@ export class Visual implements IVisual {
 
         if (
             !this.hasFormattingProperty(
-                dataView,
-                "minMax",
-                "color"
+                dataView
+                ,"minMax"
+                ,"color"
             )
         ) {
             this.formattingSettings
@@ -230,9 +284,9 @@ export class Visual implements IVisual {
 
         if (
             !this.hasFormattingProperty(
-                dataView,
-                "p5p95",
-                "color"
+                dataView
+                ,"p5p95"
+                ,"color"
             )
         ) {
             this.formattingSettings
@@ -245,9 +299,9 @@ export class Visual implements IVisual {
 
         if (
             !this.hasFormattingProperty(
-                dataView,
-                "p33p67",
-                "color"
+                dataView
+                ,"p33p67"
+                ,"color"
             )
         ) {
             this.formattingSettings
@@ -260,9 +314,9 @@ export class Visual implements IVisual {
 
         if (
             !this.hasFormattingProperty(
-                dataView,
-                "median",
-                "color"
+                dataView
+                ,"median"
+                ,"color"
             )
         ) {
             this.formattingSettings
@@ -275,9 +329,9 @@ export class Visual implements IVisual {
 
         if (
             !this.hasFormattingProperty(
-                dataView,
-                "average",
-                "color"
+                dataView
+                ,"average"
+                ,"color"
             )
         ) {
             this.formattingSettings
@@ -289,14 +343,10 @@ export class Visual implements IVisual {
         }
     }
 
-    /**
-     * Returns true when the user has explicitly
-     * formatted a property.
-     */
     private hasFormattingProperty(
-        dataView: DataView,
-        objectName: string,
-        propertyName: string
+        dataView: DataView
+        ,objectName: string
+        ,propertyName: string
     ): boolean {
 
         const object =
@@ -310,15 +360,125 @@ export class Visual implements IVisual {
 
         return Object.prototype
             .hasOwnProperty.call(
-                object,
-                propertyName
+                object
+                ,propertyName
             );
     }
 
+
+    private getNiceStep(
+        min: number
+        ,max: number
+        ,targetTickCounter: number
+    ): number {
+
+            const range =
+                Math.abs(max - min)
+            
+            if (range === 0) {
+                return 1;
+            }
+
+            const roughStep =
+                range / targetTickCounter
+            
+            const magnitude =
+                Math.pow(
+                    10
+                    ,Math.floor(
+                        Math.log10(
+                            roughStep
+                        )
+                    )
+                );
+            
+            const normalized =
+                roughStep / magnitude;
+
+            let niceNormalized: number;
+            
+            if (normalized <= 1) {
+                niceNormalized = 1;
+            }
+
+            else if (normalized <= 2) {
+                niceNormalized = 2;
+            }
+
+            else if (normalized <= 5) {
+                niceNormalized = 5;
+            }
+
+            else {
+                niceNormalized = 10;
+            }
+
+            return (
+                niceNormalized * magnitude
+            );
+
+    }
+
+    private drawCategorySeparator(
+        svg: SVGSVGElement
+        ,x: number
+        ,top: number
+        ,bottom: number
+        ,angled: boolean
+    ): void {
+        const svgNamespace =
+            "http://www.w3.org/2000/svg";
+
+        const path =
+            document.createElementNS(
+                svgNamespace
+                ,"path"
+            );
+        
+        let pathData =
+            `M ${x} ${top} ` +
+            `L ${x} ${bottom}`;
+
+        if (angled) {
+            
+            const extension =
+                18;
+
+            pathData +=
+                ` L ${x + extension} ${bottom + extension}`
+        }
+
+        path.setAttribute(
+            "d"
+            ,pathData
+        );
+
+        path.setAttribute(
+            "fill"
+            ,"none"
+        );
+
+        path.setAttribute(
+            "stroke"
+            ,"#D9D9D9"
+        );
+
+        path.setAttribute(
+            "stroke-width"
+            ,"1"
+        );
+
+        svg.appendChild(
+            path
+        );
+    }
+
+
     private renderChart(
-        statistics: BandStatistics[],
-        width: number,
-        height: number
+        statistics: BandStatistics[]
+        ,width: number
+        ,height: number
+        ,formatString?: string
     ): void {
 
         this.clearTarget();
@@ -328,27 +488,33 @@ export class Visual implements IVisual {
 
         const svg =
             document.createElementNS(
-                svgNamespace,
-                "svg"
+                svgNamespace
+                ,"svg"
             );
 
         svg.setAttribute(
-            "width",
-            width.toString()
+            "width"
+            ,width.toString()
         );
 
         svg.setAttribute(
-            "height",
-            height.toString()
+            "height"
+            ,height.toString()
         );
 
         this.target.appendChild(svg);
 
+        /*
+         * Margins
+         *
+         * Left margin is larger now because
+         * the Y-axis needs room for labels.
+         */
         const margin = {
-            top: 20,
-            right: 20,
-            bottom: 50,
-            left: 40
+            top: 20
+            ,right: 20
+            ,bottom: 80
+            ,left: 80
         };
 
         const chartWidth =
@@ -369,7 +535,16 @@ export class Visual implements IVisual {
         }
 
         /*
-         * Determine overall Y range.
+         * Formatter based on the Power BI
+         * measure's format string.
+         */
+        const formatter =
+            valueFormatter.create({
+                format: formatString
+            });
+
+        /*
+         * Determine overall Y-axis range.
          */
         const overallMin =
             Math.min(
@@ -385,19 +560,27 @@ export class Visual implements IVisual {
                 )
             );
 
-        const range =
-            overallMax - overallMin;
+        const majorStep =
+            this.getNiceStep(
+                overallMin
+                ,overallMax
+                ,5
+            );
 
-        const padding =
-            range === 0
-                ? 1
-                : range * 0.05;
+        let yMin =
+            Math.floor(
+                overallMin / majorStep
+            ) * majorStep;
 
-        const yMin =
-            overallMin - padding;
-
-        const yMax =
-            overallMax + padding;
+        let yMax =
+            Math.ceil(
+                overallMax / majorStep
+            ) * majorStep;
+        
+        if (yMin === yMax) {
+            yMin -= majorStep;
+            yMax += majorStep;
+        }
 
         const yScale = (
             value: number
@@ -415,15 +598,324 @@ export class Visual implements IVisual {
         };
 
         /*
-         * Give every X-axis category
-         * an equal amount of space.
+         * Y axis and gridlines.
+         */
+        if (
+            this.formattingSettings
+                .yAxis
+                .show
+                .value
+        ) {
+
+            for (
+                let tickValue = yMin;
+                tickValue <= yMax + majorStep * 0.001;
+                tickValue += majorStep
+            ) {
+                const y =
+                    yScale(
+                        tickValue
+                    );
+
+                /*
+                 * Gridline
+                 */
+                if (
+                    this.formattingSettings
+                        .yAxis
+                        .gridlines
+                        .value
+                ) {
+
+                    const gridline =
+                        document.createElementNS(
+                            svgNamespace
+                            ,"line"
+                        );
+
+                    gridline.setAttribute(
+                        "x1"
+                        ,margin.left.toString()
+                    );
+
+                    gridline.setAttribute(
+                        "x2"
+                        ,(
+                            width -
+                            margin.right
+                        ).toString()
+                    );
+
+                    gridline.setAttribute(
+                        "y1"
+                        ,y.toString()
+                    );
+
+                    gridline.setAttribute(
+                        "y2"
+                        ,y.toString()
+                    );
+
+                    gridline.setAttribute(
+                        "stroke"
+                        ,"#D9D9D9"
+                    );
+
+                    gridline.setAttribute(
+                        "stroke-width"
+                        ,"1"
+                    );
+
+                    svg.appendChild(
+                        gridline
+                    );
+                }
+
+                if (
+                    this.formattingSettings
+                        .yAxis
+                        .minorGridlines
+                        .value
+                ) {
+                    const minorValue =
+                        tickValue +
+                        majorStep / 2;
+
+                    if (
+                        minorValue < yMax
+                    ) {
+                        const minorY =
+                            yScale(
+                                minorValue
+                            );
+
+                        const minorLine =
+                            document.createElementNS(
+                                svgNamespace
+                                ,"line"
+                            );
+                        
+                        minorLine.setAttribute(
+                            "x1"
+                            ,margin.left.toString()
+                        );
+
+                        minorLine.setAttribute(
+                            "x2"
+                            ,(
+                                width - margin.right
+                            ).toString()
+                        );
+
+                        minorLine.setAttribute(
+                            "y1"
+                            ,minorY.toString()
+                        );
+
+                        minorLine.setAttribute(
+                            "y2"
+                            ,minorY.toString()
+                        );
+
+                        minorLine.setAttribute(
+                            "stroke"
+                            ,"#EEEEEE"
+                        );
+
+                        minorLine.setAttribute(
+                            "stroke-width"
+                            ,"1"
+                        );
+
+                        svg.appendChild(
+                            minorLine
+                        );
+                    }
+                }
+
+                /*
+                 * Tick mark
+                 */
+                const tick =
+                    document.createElementNS(
+                        svgNamespace
+                        ,"line"
+                    );
+
+                tick.setAttribute(
+                    "x1"
+                    ,(
+                        margin.left - 5
+                    ).toString()
+                );
+
+                tick.setAttribute(
+                    "x2"
+                    ,margin.left.toString()
+                );
+
+                tick.setAttribute(
+                    "y1"
+                    ,y.toString()
+                );
+
+                tick.setAttribute(
+                    "y2"
+                    ,y.toString()
+                );
+
+                tick.setAttribute(
+                    "stroke"
+                    ,"#666666"
+                );
+
+                tick.setAttribute(
+                    "stroke-width"
+                    ,"1"
+                );
+
+                svg.appendChild(
+                    tick
+                );
+
+                /*
+                 * Y-axis tick label
+                 */
+                const label =
+                    document.createElementNS(
+                        svgNamespace
+                        ,"text"
+                    );
+
+                label.setAttribute(
+                    "x"
+                    ,(
+                        margin.left - 10
+                    ).toString()
+                );
+
+                label.setAttribute(
+                    "y"
+                    ,y.toString()
+                );
+
+                label.setAttribute(
+                    "text-anchor"
+                    ,"end"
+                );
+
+                label.setAttribute(
+                    "dominant-baseline"
+                    ,"middle"
+                );
+
+                label.setAttribute(
+                    "font-size"
+                    ,this.formattingSettings
+                        .yAxis
+                        .fontSize
+                        .value
+                        .toString()
+                );
+
+                label.textContent =
+                    formatter.format(
+                        tickValue
+                    );
+
+                svg.appendChild(
+                    label
+                );
+            }
+
+            /*
+             * Y-axis vertical line
+             */
+            const axisLine =
+                document.createElementNS(
+                    svgNamespace
+                    ,"line"
+                );
+
+            axisLine.setAttribute(
+                "x1"
+                ,margin.left.toString()
+            );
+
+            axisLine.setAttribute(
+                "x2"
+                ,margin.left.toString()
+            );
+
+            axisLine.setAttribute(
+                "y1"
+                ,margin.top.toString()
+            );
+
+            axisLine.setAttribute(
+                "y2"
+                ,(
+                    margin.top +
+                    chartHeight
+                ).toString()
+            );
+
+            axisLine.setAttribute(
+                "stroke"
+                ,"#666666"
+            );
+
+            axisLine.setAttribute(
+                "stroke-width"
+                ,"1"
+            );
+
+            svg.appendChild(
+                axisLine
+            );
+        }
+
+        /*
+         * Equal X spacing.
          */
         const xSpacing =
             chartWidth /
             statistics.length;
 
+        if (
+            this.formattingSettings
+                .xAxis
+                .gridlines
+                .value
+        ) {
+            for (
+                let i = 1;
+                i < statistics.length;
+                i++
+            ) {
+                const separatorX =
+                    margin.left +
+                    xSpacing * i;
+
+                this.drawCategorySeparator(
+                    svg
+                    ,separatorX
+                    ,margin.top
+                    ,margin.top + chartHeight
+                    ,this.formattingSettings
+                        .xAxis
+                        .angledGridlines
+                        .value
+                );
+            }
+
+
+        }
+
+
+
         /*
-         * Formatting values
+         * Formatting values.
          */
         const lineColor =
             this.formattingSettings
@@ -524,8 +1016,20 @@ export class Visual implements IVisual {
                     .value
             );
 
+        const xAxisFontSize =
+            this.formattingSettings
+                .xAxis
+                .fontSize
+                .value;
+
+        const xAxisRotation =
+            this.formattingSettings
+                .xAxis
+                .labelRotation
+                .value;
+
         /*
-         * Draw each category.
+         * Draw categories.
          */
         for (
             let i = 0;
@@ -535,6 +1039,11 @@ export class Visual implements IVisual {
 
             const stat =
                 statistics[i];
+
+            const categoryName =
+                stat.xValues.join(
+                    " > "
+                );
 
             const x =
                 margin.left +
@@ -546,8 +1055,8 @@ export class Visual implements IVisual {
              */
             const line =
                 document.createElementNS(
-                    svgNamespace,
-                    "line"
+                    svgNamespace
+                    ,"line"
                 );
 
             line.setAttribute(
@@ -562,12 +1071,16 @@ export class Visual implements IVisual {
 
             line.setAttribute(
                 "y1",
-                yScale(stat.max).toString()
+                yScale(
+                    stat.max
+                ).toString()
             );
 
             line.setAttribute(
                 "y2",
-                yScale(stat.min).toString()
+                yScale(
+                    stat.min
+                ).toString()
             );
 
             line.setAttribute(
@@ -580,159 +1093,390 @@ export class Visual implements IVisual {
                 lineThickness.toString()
             );
 
-            svg.appendChild(line);
+            svg.appendChild(
+                line
+            );
+
+            const lineHitTarget =
+                document.createElementNS(
+                    svgNamespace
+                    ,"line"
+                );
+
+            lineHitTarget.setAttribute(
+                "x1"
+                ,x.toString()
+            );
+
+            lineHitTarget.setAttribute(
+                "x2"
+                ,x.toString()
+            );
+
+            lineHitTarget.setAttribute(
+                "y1"
+                ,yScale(stat.max).toString()
+            );
+
+            lineHitTarget.setAttribute(
+                "y2"
+                ,yScale(stat.min).toString()
+            );
+
+            lineHitTarget.setAttribute(
+                "stroke"
+                ,"transparent"
+            );
+
+            lineHitTarget.setAttribute(
+                "stroke-width"
+                ,"20"
+            );
+
+            lineHitTarget.setAttribute(
+                "pointer-events"
+                ,"stroke"
+            );
+
+            lineHitTarget.setAttribute(
+                "cursor"
+                ,"default"
+            );
+
+            lineHitTarget.addEventListener(
+                "mousemove"
+                ,(event: MouseEvent) => {
+                    if (
+                        !this.tooltipService.enabled()
+                    ) {
+                        return;
+                    }
+
+                    const tooltipData:
+                        VisualTooltipDataItem[] = [
+                            {
+                                displayName: "Category"
+                                ,value: categoryName
+                            }
+                            ,{
+                                displayName: "Min"
+                                ,value: formatter.format(
+                                    stat.min
+                                )
+                            }
+                            ,{
+                                displayName: "P05"
+                                ,value: formatter.format(
+                                    stat.p05
+                                )
+                            }
+                            ,{
+                                displayName: "P33"
+                                ,value: formatter.format(
+                                    stat.p33
+                                )
+                            }
+                            ,{
+                                displayName: "P50"
+                                ,value: formatter.format(
+                                    stat.p50
+                                )
+                            }
+                            ,{
+                                displayName: "Average"
+                                ,value: formatter.format(
+                                    stat.average
+                                )
+                            }
+                            ,{
+                                displayName: "P67"
+                                ,value: formatter.format(
+                                    stat.p67
+                                )
+                            }
+                            ,{
+                                displayName: "P95"
+                                ,value: formatter.format(
+                                    stat.p95
+                                )
+                            }
+                            ,{
+                                displayName: "Max"
+                                ,value: formatter.format(
+                                    stat.max
+                                )
+                            }
+                        ];
+
+                    this.tooltipService.show({
+                        coordinates: [
+                            event.clientX
+                            ,event.clientY
+                        ]
+                        ,isTouchEvent: false
+                        ,dataItems: tooltipData
+                        ,identities: []
+                    });
+                }
+            );
+
+            lineHitTarget.addEventListener(
+                "mouseout"
+                ,() => {
+                    if (
+                        !this.tooltipService.enabled()
+                    ) {
+                        return;
+                    }
+                    this.tooltipService.hide({
+                        isTouchEvent: false
+                        ,immediately: true
+                    });
+                }
+            );
+
+            svg.appendChild(
+                lineHitTarget
+            );
 
             /*
-             * Min / Max
+             * Min
              */
             this.drawMarker(
-                svg,
-                x,
-                yScale(stat.min),
-                pointSize,
-                minMaxColor,
-                minMaxShape
-            );
-
-            this.drawMarker(
-                svg,
-                x,
-                yScale(stat.max),
-                pointSize,
-                minMaxColor,
-                minMaxShape
+                svg
+                ,x
+                ,yScale(stat.min)
+                ,pointSize
+                ,minMaxColor
+                ,minMaxShape
+                ,categoryName
+                ,"Min"
+                ,stat.min
+                ,formatter
             );
 
             /*
-             * P5 / P95
-             *
-             * P5 is always inverted.
+             * Max
              */
             this.drawMarker(
-                svg,
-                x,
-                yScale(stat.p05),
-                pointSize,
-                p5p95Color,
-                p5p95Shape,
-                true
-            );
-
-            this.drawMarker(
-                svg,
-                x,
-                yScale(stat.p95),
-                pointSize,
-                p5p95Color,
-                p5p95Shape
+                svg
+                ,x
+                ,yScale(stat.max)
+                ,pointSize
+                ,minMaxColor
+                ,minMaxShape
+                ,categoryName
+                ,"Max"
+                ,stat.max
+                ,formatter
             );
 
             /*
-             * P33 / P67
-             *
-             * P33 is always inverted.
+             * P5 - inverted
              */
             this.drawMarker(
-                svg,
-                x,
-                yScale(stat.p33),
-                pointSize,
-                p33p67Color,
-                p33p67Shape,
-                true
+                svg
+                ,x
+                ,yScale(stat.p05)
+                ,pointSize
+                ,p5p95Color
+                ,p5p95Shape
+                ,categoryName
+                ,"P5"
+                ,stat.p05
+                ,formatter
+                ,true
             );
 
+            /*
+             * P95
+             */
             this.drawMarker(
-                svg,
-                x,
-                yScale(stat.p67),
-                pointSize,
-                p33p67Color,
-                p33p67Shape
+                svg
+                ,x
+                ,yScale(stat.p95)
+                ,pointSize
+                ,p5p95Color
+                ,p5p95Shape
+                ,categoryName
+                ,"P95"
+                ,stat.p95
+                ,formatter
+            );
+
+            /*
+             * P33 - inverted
+             */
+            this.drawMarker(
+                svg
+                ,x
+                ,yScale(stat.p33)
+                ,pointSize
+                ,p33p67Color
+                ,p33p67Shape
+                ,categoryName
+                ,"P33"
+                ,stat.p33
+                ,formatter
+                ,true
+            );
+
+            /*
+             * P67
+             */
+            this.drawMarker(
+                svg
+                ,x
+                ,yScale(stat.p67)
+                ,pointSize
+                ,p33p67Color
+                ,p33p67Shape
+                ,categoryName
+                ,"P67"
+                ,stat.p67
+                ,formatter
             );
 
             /*
              * Median
              */
             this.drawMarker(
-                svg,
-                x,
-                yScale(stat.p50),
-                pointSize,
-                medianColor,
-                medianShape
+                svg
+                ,x
+                ,yScale(stat.p50)
+                ,pointSize
+                ,medianColor
+                ,medianShape
+                ,categoryName
+                ,"Median"
+                ,stat.p50
+                ,formatter
             );
 
             /*
              * Average
              */
             this.drawMarker(
-                svg,
-                x,
-                yScale(stat.average),
-                pointSize,
-                averageColor,
-                averageShape
+                svg
+                ,x
+                ,yScale(stat.average)
+                ,pointSize
+                ,averageColor
+                ,averageShape
+                ,categoryName
+                ,"Average"
+                ,stat.average
+                ,formatter
             );
 
             /*
-             * X-axis category label.
+             * X-axis label.
              */
+            const labelY =
+                margin.top +
+                chartHeight +
+                20;
+
             const label =
                 document.createElementNS(
-                    svgNamespace,
-                    "text"
+                    svgNamespace
+                    ,"text"
                 );
 
             label.setAttribute(
-                "x",
-                x.toString()
+                "x"
+                ,x.toString()
             );
 
             label.setAttribute(
-                "y",
-                (
-                    height - 15
-                ).toString()
+                "y"
+                ,labelY.toString()
             );
 
             label.setAttribute(
-                "text-anchor",
-                "middle"
+                "text-anchor"
+                ,xAxisRotation === 0
+                    ? "middle"
+                    : xAxisRotation > 0
+                        ? "start"
+                        : "end"
             );
 
             label.setAttribute(
-                "font-size",
-                "12"
+                "font-size"
+                ,xAxisFontSize.toString()
+            );
+
+            label.setAttribute(
+                "transform"
+                ,`rotate(${xAxisRotation} ${x} ${labelY})`
             );
 
             label.textContent =
-                stat.xValues.join(" > ");
+                categoryName;
 
-            svg.appendChild(label);
+            svg.appendChild(
+                label
+            );
         }
     }
 
     /**
-     * Draw a marker.
-     *
-     * If inverted is true, the entire marker
-     * is rotated 180 degrees around its center.
+     * Draw one statistical marker and attach
+     * a native Power BI tooltip.
      */
     private drawMarker(
-        svg: SVGSVGElement,
-        x: number,
-        y: number,
-        size: number,
-        color: string,
-        shape: string,
-        inverted: boolean = false
+        svg: SVGSVGElement
+        ,x: number
+        ,y: number
+        ,size: number
+        ,color: string
+        ,shape: string
+        ,categoryName: string
+        ,statisticName: string
+        ,value: number
+        ,formatter: valueFormatter.IValueFormatter
+        ,inverted: boolean = false
     ): void {
 
         const svgNamespace =
             "http://www.w3.org/2000/svg";
 
         let marker: SVGElement;
+
+        const hitTarget =
+            document.createElementNS(
+                svgNamespace
+                ,"circle"
+            );
+
+        hitTarget.setAttribute(
+            "cx"
+            ,x.toString()
+        );
+
+        hitTarget.setAttribute(
+            "cy"
+            ,y.toString()
+        );
+
+        hitTarget.setAttribute(
+            "r"
+            ,Math.max(
+                size * 2
+                ,20
+            ).toString()
+        );
+
+        hitTarget.setAttribute(
+            "fill"
+            ,"transparent"
+        );
+
+        hitTarget.setAttribute(
+            "pointer-events"
+            ,"all"
+        );
 
         /*
          * Square
@@ -741,33 +1485,41 @@ export class Visual implements IVisual {
 
             const square =
                 document.createElementNS(
-                    svgNamespace,
-                    "rect"
+                    svgNamespace
+                    ,"rect"
                 );
 
             square.setAttribute(
-                "x",
-                (x - size).toString()
+                "x"
+                ,(
+                    x - size
+                ).toString()
             );
 
             square.setAttribute(
-                "y",
-                (y - size).toString()
+                "y"
+                ,(
+                    y - size
+                ).toString()
             );
 
             square.setAttribute(
-                "width",
-                (size * 2).toString()
+                "width"
+                ,(
+                    size * 2
+                ).toString()
             );
 
             square.setAttribute(
-                "height",
-                (size * 2).toString()
+                "height"
+                ,(
+                    size * 2
+                ).toString()
             );
 
             square.setAttribute(
-                "fill",
-                color
+                "fill"
+                ,color
             );
 
             marker = square;
@@ -776,29 +1528,31 @@ export class Visual implements IVisual {
         /*
          * Diamond
          */
-        else if (shape === "diamond") {
+        else if (
+            shape === "diamond"
+        ) {
 
             const diamond =
                 document.createElementNS(
-                    svgNamespace,
-                    "polygon"
+                    svgNamespace
+                    ,"polygon"
                 );
 
             const points = [
-                `${x},${y - size}`,
-                `${x + size},${y}`,
-                `${x},${y + size}`,
-                `${x - size},${y}`
+                `${x},${y - size}`
+                ,`${x + size},${y}`
+                ,`${x},${y + size}`
+                ,`${x - size},${y}`
             ].join(" ");
 
             diamond.setAttribute(
-                "points",
-                points
+                "points"
+                ,points
             );
 
             diamond.setAttribute(
-                "fill",
-                color
+                "fill"
+                ,color
             );
 
             marker = diamond;
@@ -807,28 +1561,30 @@ export class Visual implements IVisual {
         /*
          * Triangle
          */
-        else if (shape === "triangle") {
+        else if (
+            shape === "triangle"
+        ) {
 
             const triangle =
                 document.createElementNS(
-                    svgNamespace,
-                    "polygon"
+                    svgNamespace
+                    ,"polygon"
                 );
 
             const points = [
-                `${x},${y - size}`,
-                `${x + size},${y + size}`,
-                `${x - size},${y + size}`
+                `${x},${y - size}`
+                ,`${x + size},${y + size}`
+                ,`${x - size},${y + size}`
             ].join(" ");
 
             triangle.setAttribute(
-                "points",
-                points
+                "points"
+                ,points
             );
 
             triangle.setAttribute(
-                "fill",
-                color
+                "fill"
+                ,color
             );
 
             marker = triangle;
@@ -841,48 +1597,121 @@ export class Visual implements IVisual {
 
             const circle =
                 document.createElementNS(
-                    svgNamespace,
-                    "circle"
+                    svgNamespace
+                    ,"circle"
                 );
 
             circle.setAttribute(
-                "cx",
-                x.toString()
+                "cx"
+                ,x.toString()
             );
 
             circle.setAttribute(
-                "cy",
-                y.toString()
+                "cy"
+                ,y.toString()
             );
 
             circle.setAttribute(
-                "r",
-                size.toString()
+                "r"
+                ,size.toString()
             );
 
             circle.setAttribute(
-                "fill",
-                color
+                "fill"
+                ,color
             );
 
             marker = circle;
         }
 
         /*
-         * Always use the same inversion rule.
-         *
-         * P5 and P33 call this method with
-         * inverted = true.
+         * Invert P5 and P33.
          */
         if (inverted) {
 
             marker.setAttribute(
-                "transform",
-                `rotate(180 ${x} ${y})`
+                "transform"
+                ,`rotate(180 ${x} ${y})`
             );
         }
 
-        svg.appendChild(marker);
+        /*
+         * Make cursor behavior feel interactive.
+         */
+        hitTarget.setAttribute(
+            "cursor"
+            ,"default"
+        );
+
+        /*
+         * Native Power BI tooltip.
+         */
+        hitTarget.addEventListener(
+            "mousemove"
+            ,(
+                event: MouseEvent
+            ) => {
+
+                if (
+                    !this.tooltipService.enabled()
+                ) {
+                    return;
+                }
+
+                const tooltipData:
+                    VisualTooltipDataItem[] = [
+                        {
+                            displayName:
+                                "Category"
+                            ,value:
+                                categoryName
+                        }
+                        ,{
+                            displayName:
+                                statisticName
+                            ,value:
+                                formatter.format(
+                                    value
+                                )
+                        }
+                    ];
+
+                this.tooltipService.show({
+                    coordinates: [
+                        event.clientX
+                        ,event.clientY
+                    ]
+                    ,isTouchEvent: false
+                    ,dataItems: tooltipData
+                    ,identities: []
+                });
+            }
+        );
+
+        hitTarget.addEventListener(
+            "mouseout"
+            ,() => {
+
+                if (
+                    !this.tooltipService.enabled()
+                ) {
+                    return;
+                }
+
+                this.tooltipService.hide({
+                    isTouchEvent: false
+                    ,immediately: true
+                });
+            }
+        );
+
+        svg.appendChild(
+            marker
+        );
+
+        svg.appendChild(
+            hitTarget
+        );
     }
 
     private clearTarget(): void {

@@ -1,22 +1,22 @@
 {
     "dataRoles": [
         {
-            "displayName": "X Axis",
-            "name": "xAxis",
-            "kind": "Grouping"
-        },
-        {
-            "displayName": "Grain",
-            "name": "grain",
-            "kind": "Grouping"
-        },
-        {
-            "displayName": "Measure Data",
-            "name": "measure",
-            "kind": "Measure"
+            "displayName": "X Axis"
+            ,"name": "xAxis"
+            ,"kind": "Grouping"
         }
-    ],
-    "objects": {
+        ,{
+            "displayName": "Grain"
+            ,"name": "grain"
+            ,"kind": "Grouping"
+        }
+        ,{
+            "displayName": "Measure Data"
+            ,"name": "measure"
+            ,"kind": "Measure"
+        }
+    ]
+    ,"objects": {
         "line": {
             "properties": {
                 "lineColor": {
@@ -27,15 +27,15 @@
                             }
                         }
                     }
-                },
-                "lineThickness": {
+                }
+                ,"lineThickness": {
                     "type": {
                         "numeric": true
                     }
                 }
             }
-        },
-        "points": {
+        }
+        ,"points": {
             "properties": {
                 "pointSize": {
                     "type": {
@@ -43,8 +43,8 @@
                     }
                 }
             }
-        },
-        "minMax": {
+        }
+        ,"minMax": {
             "properties": {
                 "color": {
                     "type": {
@@ -54,15 +54,15 @@
                             }
                         }
                     }
-                },
-                "shape": {
+                }
+                ,"shape": {
                     "type": {
                         "enumeration": []
                     }
                 }
             }
-        },
-        "p5p95": {
+        }
+        ,"p5p95": {
             "properties": {
                 "color": {
                     "type": {
@@ -72,15 +72,15 @@
                             }
                         }
                     }
-                },
-                "shape": {
+                }
+                ,"shape": {
                     "type": {
                         "enumeration": []
                     }
                 }
             }
-        },
-        "p33p67": {
+        }
+        ,"p33p67": {
             "properties": {
                 "color": {
                     "type": {
@@ -90,15 +90,15 @@
                             }
                         }
                     }
-                },
-                "shape": {
+                }
+                ,"shape": {
                     "type": {
                         "enumeration": []
                     }
                 }
             }
-        },
-        "median": {
+        }
+        ,"median": {
             "properties": {
                 "color": {
                     "type": {
@@ -108,8 +108,8 @@
                             }
                         }
                     }
-                },
-                "shape": {
+                }
+                ,"shape": {
                     "type": {
                         "enumeration": []
                     }
@@ -126,44 +126,92 @@
                             }
                         }
                     }
-                },
-                "shape": {
+                }
+                ,"shape": {
                     "type": {
                         "enumeration": []
                     }
                 }
             }
         }
-    },
-    "dataViewMappings": [
+        ,"xAxis": {
+            "properties": {
+                "labelRotation": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"fontSize": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"gridlines": {
+                    "type":{
+                        "bool": true
+                    }
+                }
+                ,"angledGridlines":{
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        }
+        ,"yAxis": {
+            "properties": {
+                "show": {
+                    "type": {
+                        "bool": true
+                    }
+                }
+                ,"fontSize": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"gridlines": {
+                    "type": {
+                        "bool": true
+                    }
+                }
+                ,"minorGridlines": {
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        }
+    }
+    ,"dataViewMappings": [
         {
             "conditions": [
                 {
                     "xAxis": {
                         "min": 1
-                    },
-                    "grain": {
+                    }
+                    ,"grain": {
                         "max": 1
-                    },
-                    "measure": {
+                    }
+                    ,"measure": {
                         "max": 1
                     }
                 }
-            ],
-            "table": {
+            ]
+            ,"table": {
                 "rows": {
                     "select": [
                         {
                             "for": {
                                 "in": "xAxis"
                             }
-                        },
-                        {
+                        }
+                        ,{
                             "for": {
                                 "in": "grain"
                             }
-                        },
-                        {
+                        }
+                        ,{
                             "for": {
                                 "in": "measure"
                             }
@@ -172,6 +220,6 @@
                 }
             }
         }
-    ],
-    "privileges": []
+    ]
+    ,"privileges": []
 }

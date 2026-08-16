@@ -8,54 +8,54 @@ import FormattingSettingsModel = formattingSettings.Model;
 
 const shapeItems = [
     {
-        displayName: "Circle",
-        value: "circle"
-    },
-    {
-        displayName: "Square",
-        value: "square"
-    },
-    {
-        displayName: "Diamond",
-        value: "diamond"
-    },
-    {
-        displayName: "Triangle",
-        value: "triangle"
+        displayName: "Circle"
+        ,value: "circle"
+    }
+    ,{
+        displayName: "Square"
+        ,value: "square"
+    }
+    ,{
+        displayName: "Diamond"
+        ,value: "diamond"
+    }
+    ,{
+        displayName: "Triangle"
+        ,value: "triangle"
     }
 ];
 
 export class LineSettings extends FormattingSettingsCard {
 
     public lineColor = new formattingSettings.ColorPicker({
-        name: "lineColor",
-        displayName: "Color",
-        value: {
+        name: "lineColor"
+        ,displayName: "Color"
+        ,value: {
             value: "#000000"
         }
     });
 
     public lineThickness = new formattingSettings.NumUpDown({
-        name: "lineThickness",
-        displayName: "Thickness",
-        value: 2
+        name: "lineThickness"
+        ,displayName: "Thickness"
+        ,value: 2
     });
 
     public name: string = "line";
     public displayName: string = "Min / Max Line";
 
     public slices: FormattingSettingsSlice[] = [
-        this.lineColor,
-        this.lineThickness
+        this.lineColor
+        ,this.lineThickness
     ];
 }
 
 export class PointSettings extends FormattingSettingsCard {
 
     public pointSize = new formattingSettings.NumUpDown({
-        name: "pointSize",
-        displayName: "Size",
-        value: 4
+        name: "pointSize"
+        ,displayName: "Size"
+        ,value: 4
     });
 
     public name: string = "points";
@@ -66,23 +66,99 @@ export class PointSettings extends FormattingSettingsCard {
     ];
 }
 
+export class XAxisSettings extends FormattingSettingsCard {
+
+    public labelRotation = new formattingSettings.NumUpDown({
+        name: "labelRotation"
+        ,displayName: "Label rotation"
+        ,value: 0
+    });
+
+    public fontSize = new formattingSettings.NumUpDown({
+        name: "fontSize"
+        ,displayName: "Font size"
+        ,value: 12
+    });
+
+    public name: string = "xAxis";
+    public displayName: string = "X Axis";
+
+
+    public gridlines = new formattingSettings.ToggleSwitch({
+        name: "gridlines"
+        ,displayName: "Category separators"
+        ,value: false
+    });
+
+    public angledGridlines = new formattingSettings.ToggleSwitch({
+        name: "angledGridlines"
+        ,displayName: "Angled extension"
+        ,value: false
+    });
+
+    public slices: FormattingSettingsSlice[] = [
+        this.labelRotation
+        ,this.fontSize
+        ,this.gridlines
+        ,this.angledGridlines
+    ];
+}
+
+export class YAxisSettings extends FormattingSettingsCard {
+
+    public show = new formattingSettings.ToggleSwitch({
+        name: "show"
+        ,displayName: "Show"
+        ,value: true
+    });
+
+    public fontSize = new formattingSettings.NumUpDown({
+        name: "fontSize"
+        ,displayName: "Font size"
+        ,value: 11
+    });
+
+    public gridlines = new formattingSettings.ToggleSwitch({
+        name: "gridlines"
+        ,displayName: "Gridlines"
+        ,value: true
+    });
+
+    public name: string = "yAxis";
+    public displayName: string = "Y Axis";
+
+    public minorGridlines = new formattingSettings.ToggleSwitch({
+    name: "minorGridlines"
+    ,displayName: "Minor gridlines"
+    ,value: false
+    });
+
+    public slices: FormattingSettingsSlice[] = [
+        this.show
+        ,this.fontSize
+        ,this.gridlines
+        ,this.minorGridlines
+    ];
+
+}
+
 export class MinMaxSettings extends FormattingSettingsCard {
 
     public color = new formattingSettings.ColorPicker({
-        name: "color",
-        displayName: "Color",
-        value: {
+        name: "color"
+        ,displayName: "Color"
+        ,value: {
             value: "#000000"
         }
     });
 
     public shape = new formattingSettings.ItemDropdown({
-        name: "shape",
-        displayName: "Shape",
-        items: shapeItems,
-        value: {
-            displayName: "Circle",
-            value: "circle"
+        name: "shape"
+        ,displayName: "Shape"
+        ,items: shapeItems
+        ,value: {
+            displayName: "Circle"
+            ,value: "circle"
         }
     });
 
@@ -90,28 +166,28 @@ export class MinMaxSettings extends FormattingSettingsCard {
     public displayName: string = "Min / Max";
 
     public slices: FormattingSettingsSlice[] = [
-        this.color,
-        this.shape
+        this.color
+        ,this.shape
     ];
 }
 
 export class P5P95Settings extends FormattingSettingsCard {
 
     public color = new formattingSettings.ColorPicker({
-        name: "color",
-        displayName: "Color",
-        value: {
+        name: "color"
+        ,displayName: "Color"
+        ,value: {
             value: "#000000"
         }
     });
 
     public shape = new formattingSettings.ItemDropdown({
-        name: "shape",
-        displayName: "Shape",
-        items: shapeItems,
-        value: {
-            displayName: "Triangle",
-            value: "triangle"
+        name: "shape"
+        ,displayName: "Shape"
+        ,items: shapeItems
+        ,value: {
+            displayName: "Triangle"
+            ,value: "triangle"
         }
     });
 
@@ -119,28 +195,28 @@ export class P5P95Settings extends FormattingSettingsCard {
     public displayName: string = "P5 / P95";
 
     public slices: FormattingSettingsSlice[] = [
-        this.color,
-        this.shape
+        this.color
+        ,this.shape
     ];
 }
 
 export class P33P67Settings extends FormattingSettingsCard {
 
     public color = new formattingSettings.ColorPicker({
-        name: "color",
-        displayName: "Color",
-        value: {
+        name: "color"
+        ,displayName: "Color"
+        ,value: {
             value: "#000000"
         }
     });
 
     public shape = new formattingSettings.ItemDropdown({
-        name: "shape",
-        displayName: "Shape",
-        items: shapeItems,
-        value: {
-            displayName: "Triangle",
-            value: "triangle"
+        name: "shape"
+        ,displayName: "Shape"
+        ,items: shapeItems
+        ,value: {
+            displayName: "Triangle"
+            ,value: "triangle"
         }
     });
 
@@ -148,28 +224,28 @@ export class P33P67Settings extends FormattingSettingsCard {
     public displayName: string = "P33 / P67";
 
     public slices: FormattingSettingsSlice[] = [
-        this.color,
-        this.shape
+        this.color
+        ,this.shape
     ];
 }
 
 export class MedianSettings extends FormattingSettingsCard {
 
     public color = new formattingSettings.ColorPicker({
-        name: "color",
-        displayName: "Color",
-        value: {
+        name: "color"
+        ,displayName: "Color"
+        ,value: {
             value: "#000000"
         }
     });
 
     public shape = new formattingSettings.ItemDropdown({
-        name: "shape",
-        displayName: "Shape",
-        items: shapeItems,
-        value: {
-            displayName: "Square",
-            value: "square"
+        name: "shape"
+        ,displayName: "Shape"
+        ,items: shapeItems
+        ,value: {
+            displayName: "Square"
+            ,value: "square"
         }
     });
 
@@ -177,28 +253,28 @@ export class MedianSettings extends FormattingSettingsCard {
     public displayName: string = "Median";
 
     public slices: FormattingSettingsSlice[] = [
-        this.color,
-        this.shape
+        this.color
+        ,this.shape
     ];
 }
 
 export class AverageSettings extends FormattingSettingsCard {
 
     public color = new formattingSettings.ColorPicker({
-        name: "color",
-        displayName: "Color",
-        value: {
+        name: "color"
+        ,displayName: "Color"
+        ,value: {
             value: "#000000"
         }
     });
 
     public shape = new formattingSettings.ItemDropdown({
-        name: "shape",
-        displayName: "Shape",
-        items: shapeItems,
-        value: {
-            displayName: "Diamond",
-            value: "diamond"
+        name: "shape"
+        ,displayName: "Shape"
+        ,items: shapeItems
+        ,value: {
+            displayName: "Diamond"
+            ,value: "diamond"
         }
     });
 
@@ -206,8 +282,8 @@ export class AverageSettings extends FormattingSettingsCard {
     public displayName: string = "Average";
 
     public slices: FormattingSettingsSlice[] = [
-        this.color,
-        this.shape
+        this.color
+        ,this.shape
     ];
 }
 
@@ -217,6 +293,9 @@ export class VisualFormattingSettingsModel
     public line = new LineSettings();
     public points = new PointSettings();
 
+    public xAxis = new XAxisSettings();
+    public yAxis = new YAxisSettings();
+
     public minMax = new MinMaxSettings();
     public p5p95 = new P5P95Settings();
     public p33p67 = new P33P67Settings();
@@ -224,12 +303,14 @@ export class VisualFormattingSettingsModel
     public average = new AverageSettings();
 
     public cards: FormattingSettingsCard[] = [
-        this.line,
-        this.points,
-        this.minMax,
-        this.p5p95,
-        this.p33p67,
-        this.median,
-        this.average
+        this.line
+        ,this.points
+        ,this.xAxis
+        ,this.yAxis
+        ,this.minMax
+        ,this.p5p95
+        ,this.p33p67
+        ,this.median
+        ,this.average
     ];
 }
