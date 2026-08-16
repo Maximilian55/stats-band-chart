@@ -18,6 +18,7 @@ import {
 
 import {
     drawMarker
+    ,MarkerStyle
 } from "./markerRenderer";
 
 import {
@@ -298,85 +299,200 @@ export function renderChart(
             .pointSize
             .value;
 
-    const minMaxColor =
-        formattingSettings
-            .minMax
-            .color
-            .value
-            .value;
+    const minMaxStyle:
+        MarkerStyle = {
+            fillColor:
+                formattingSettings
+                    .minMax
+                    .color
+                    .value
+                    .value
+            ,fillTransparency:
+                formattingSettings
+                    .minMax
+                    .fillTransparency
+                    .value
+            ,borderColor:
+                formattingSettings
+                    .minMax
+                    .borderColor
+                    .value
+                    .value
+            ,borderTransparency:
+                formattingSettings
+                    .minMax
+                    .borderTransparency
+                    .value
+            ,borderWidth:
+                formattingSettings
+                    .minMax
+                    .borderWidth
+                    .value
+            ,shape:
+                String(
+                    formattingSettings
+                        .minMax
+                        .shape
+                        .value
+                        .value
+                )
+        };
 
-    const minMaxShape =
-        String(
-            formattingSettings
-                .minMax
-                .shape
-                .value
-                .value
-        );
+    const p5p95Style:
+        MarkerStyle = {
+            fillColor:
+                formattingSettings
+                    .p5p95
+                    .color
+                    .value
+                    .value
+            ,fillTransparency:
+                formattingSettings
+                    .p5p95
+                    .fillTransparency
+                    .value
+            ,borderColor:
+                formattingSettings
+                    .p5p95
+                    .borderColor
+                    .value
+                    .value
+            ,borderTransparency:
+                formattingSettings
+                    .p5p95
+                    .borderTransparency
+                    .value
+            ,borderWidth:
+                formattingSettings
+                    .p5p95
+                    .borderWidth
+                    .value
+            ,shape:
+                String(
+                    formattingSettings
+                        .p5p95
+                        .shape
+                        .value
+                        .value
+                )
+        };
 
-    const p5p95Color =
-        formattingSettings
-            .p5p95
-            .color
-            .value
-            .value;
+    const p33p67Style:
+        MarkerStyle = {
+            fillColor:
+                formattingSettings
+                    .p33p67
+                    .color
+                    .value
+                    .value
+            ,fillTransparency:
+                formattingSettings
+                    .p33p67
+                    .fillTransparency
+                    .value
+            ,borderColor:
+                formattingSettings
+                    .p33p67
+                    .borderColor
+                    .value
+                    .value
+            ,borderTransparency:
+                formattingSettings
+                    .p33p67
+                    .borderTransparency
+                    .value
+            ,borderWidth:
+                formattingSettings
+                    .p33p67
+                    .borderWidth
+                    .value
+            ,shape:
+                String(
+                    formattingSettings
+                        .p33p67
+                        .shape
+                        .value
+                        .value
+                )
+        };
 
-    const p5p95Shape =
-        String(
-            formattingSettings
-                .p5p95
-                .shape
-                .value
-                .value
-        );
+    const medianStyle:
+        MarkerStyle = {
+            fillColor:
+                formattingSettings
+                    .median
+                    .color
+                    .value
+                    .value
+            ,fillTransparency:
+                formattingSettings
+                    .median
+                    .fillTransparency
+                    .value
+            ,borderColor:
+                formattingSettings
+                    .median
+                    .borderColor
+                    .value
+                    .value
+            ,borderTransparency:
+                formattingSettings
+                    .median
+                    .borderTransparency
+                    .value
+            ,borderWidth:
+                formattingSettings
+                    .median
+                    .borderWidth
+                    .value
+            ,shape:
+                String(
+                    formattingSettings
+                        .median
+                        .shape
+                        .value
+                        .value
+                )
+        };
 
-    const p33p67Color =
-        formattingSettings
-            .p33p67
-            .color
-            .value
-            .value;
-
-    const p33p67Shape =
-        String(
-            formattingSettings
-                .p33p67
-                .shape
-                .value
-                .value
-        );
-
-    const medianColor =
-        formattingSettings
-            .median
-            .color
-            .value
-            .value;
-
-    const medianShape =
-        String(
-            formattingSettings
-                .median
-                .shape
-                .value
-                .value
-        );
-
-    const averageColor =
-        formattingSettings
-            .average
-            .color
-            .value
-            .value;
-
-    const averageShape =
-        String(
-            formattingSettings
-                .average
-                .shape
-                .value
-                .value
-        );
+    const averageStyle:
+        MarkerStyle = {
+            fillColor:
+                formattingSettings
+                    .average
+                    .color
+                    .value
+                    .value
+            ,fillTransparency:
+                formattingSettings
+                    .average
+                    .fillTransparency
+                    .value
+            ,borderColor:
+                formattingSettings
+                    .average
+                    .borderColor
+                    .value
+                    .value
+            ,borderTransparency:
+                formattingSettings
+                    .average
+                    .borderTransparency
+                    .value
+            ,borderWidth:
+                formattingSettings
+                    .average
+                    .borderWidth
+                    .value
+            ,shape:
+                String(
+                    formattingSettings
+                        .average
+                        .shape
+                        .value
+                        .value
+                )
+        };
 
     const xAxisFontSize =
         formattingSettings
@@ -396,28 +512,23 @@ export function renderChart(
             ,items: [
                 {
                     label: "Min / Max"
-                    ,color: minMaxColor
-                    ,shape: minMaxShape
+                    ,style: minMaxStyle
                 }
                 ,{
                     label: "P05 / P95"
-                    ,color: p5p95Color
-                    ,shape: p5p95Shape
+                    ,style: p5p95Style
                 }
                 ,{
                     label: "P33 / P67"
-                    ,color: p33p67Color
-                    ,shape: p33p67Shape
+                    ,style: p33p67Style
                 }
                 ,{
                     label: "P50"
-                    ,color: medianColor
-                    ,shape: medianShape
+                    ,style: medianStyle
                 }
                 ,{
                     label: "Average"
-                    ,color: averageColor
-                    ,shape: averageShape
+                    ,style: averageStyle
                 }
             ]
             ,width
@@ -582,8 +693,7 @@ export function renderChart(
             ,x
             ,yScale(stat.min)
             ,pointSize
-            ,minMaxColor
-            ,minMaxShape
+            ,minMaxStyle
             ,categoryName
             ,"Min"
             ,stat.min
@@ -599,8 +709,7 @@ export function renderChart(
             ,x
             ,yScale(stat.max)
             ,pointSize
-            ,minMaxColor
-            ,minMaxShape
+            ,minMaxStyle
             ,categoryName
             ,"Max"
             ,stat.max
@@ -616,8 +725,7 @@ export function renderChart(
             ,x
             ,yScale(stat.p05)
             ,pointSize
-            ,p5p95Color
-            ,p5p95Shape
+            ,p5p95Style
             ,categoryName
             ,"P5"
             ,stat.p05
@@ -634,8 +742,7 @@ export function renderChart(
             ,x
             ,yScale(stat.p95)
             ,pointSize
-            ,p5p95Color
-            ,p5p95Shape
+            ,p5p95Style
             ,categoryName
             ,"P95"
             ,stat.p95
@@ -651,8 +758,7 @@ export function renderChart(
             ,x
             ,yScale(stat.p33)
             ,pointSize
-            ,p33p67Color
-            ,p33p67Shape
+            ,p33p67Style
             ,categoryName
             ,"P33"
             ,stat.p33
@@ -669,8 +775,7 @@ export function renderChart(
             ,x
             ,yScale(stat.p67)
             ,pointSize
-            ,p33p67Color
-            ,p33p67Shape
+            ,p33p67Style
             ,categoryName
             ,"P67"
             ,stat.p67
@@ -686,8 +791,7 @@ export function renderChart(
             ,x
             ,yScale(stat.p50)
             ,pointSize
-            ,medianColor
-            ,medianShape
+            ,medianStyle
             ,categoryName
             ,"Median"
             ,stat.p50
@@ -703,8 +807,7 @@ export function renderChart(
             ,x
             ,yScale(stat.average)
             ,pointSize
-            ,averageColor
-            ,averageShape
+            ,averageStyle
             ,categoryName
             ,"Average"
             ,stat.average

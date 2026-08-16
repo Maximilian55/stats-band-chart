@@ -60,6 +60,30 @@
                         "enumeration": []
                     }
                 }
+                ,"fillTransparency": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"borderColor": {
+                    "type": {
+                        "fill":{
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                }
+                ,"borderTransparency": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"borderWidth":{
+                    "type": {
+                        "numeric": true
+                    }
+                }
             }
         }
         ,"p5p95": {
@@ -76,6 +100,30 @@
                 ,"shape": {
                     "type": {
                         "enumeration": []
+                    }
+                }
+                ,"fillTransparency": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"borderColor": {
+                    "type": {
+                        "fill":{
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                }
+                ,"borderTransparency": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"borderWidth":{
+                    "type": {
+                        "numeric": true
                     }
                 }
             }
@@ -96,6 +144,30 @@
                         "enumeration": []
                     }
                 }
+                ,"fillTransparency": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"borderColor": {
+                    "type": {
+                        "fill":{
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                }
+                ,"borderTransparency": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"borderWidth":{
+                    "type": {
+                        "numeric": true
+                    }
+                }
             }
         }
         ,"median": {
@@ -114,6 +186,30 @@
                         "enumeration": []
                     }
                 }
+                ,"fillTransparency": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"borderColor": {
+                    "type": {
+                        "fill":{
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                }
+                ,"borderTransparency": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"borderWidth":{
+                    "type": {
+                        "numeric": true
+                    }
+                }
             }
         },
         "average": {
@@ -130,6 +226,30 @@
                 ,"shape": {
                     "type": {
                         "enumeration": []
+                    }
+                }
+                ,"fillTransparency": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"borderColor": {
+                    "type": {
+                        "fill":{
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                }
+                ,"borderTransparency": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"borderWidth":{
+                    "type": {
+                        "numeric": true
                     }
                 }
             }

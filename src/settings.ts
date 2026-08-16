@@ -5,25 +5,100 @@ import { formattingSettings } from "powerbi-visuals-utils-formattingmodel";
 import FormattingSettingsCard = formattingSettings.SimpleCard;
 import FormattingSettingsSlice = formattingSettings.Slice;
 import FormattingSettingsModel = formattingSettings.Model;
+import { format } from "d3";
+
 
 const shapeItems = [
-    {
-        displayName: "Circle"
-        ,value: "circle"
-    }
-    ,{
-        displayName: "Square"
-        ,value: "square"
-    }
-    ,{
-        displayName: "Diamond"
-        ,value: "diamond"
-    }
-    ,{
-        displayName: "Triangle"
-        ,value: "triangle"
-    }
+    {displayName: "Circle" ,value: "circle"}
+    ,{displayName: "Square" ,value: "square"}
+    ,{displayName: "Diamond" ,value: "diamond"}
+    ,{displayName: "Triangle" ,value: "triangle"}
+    ,{displayName: "Chevron" ,value: "chevron"}
+    ,{displayName: "Bar" ,value: "bar"}
 ];
+
+class MarkerSettingsBase
+    extends FormattingSettingsCard {
+    public color: formattingSettings.ColorPicker;
+
+    public fillTransparency: formattingSettings.NumUpDown;
+
+    public borderColor: formattingSettings.ColorPicker;
+
+    public borderTransparency: formattingSettings.NumUpDown;
+
+    public borderWidth: formattingSettings.NumUpDown;
+    
+    public shape: formattingSettings.ItemDropdown;
+
+    public slices: FormattingSettingsSlice[] = [];
+
+    constructor(
+            defaultShape: string
+            ,defaultShapeName: string
+    ) {
+        super();
+
+        this.color =
+            new formattingSettings.ColorPicker({
+                name: "color"
+                ,displayName: "Fill color"
+                ,value: {
+                    value: "#000000"
+                }
+            });
+
+        this.fillTransparency =
+            new formattingSettings.NumUpDown({
+                name: "fillTransparency"
+                ,displayName: "Fill transparency"
+                ,value: 0
+            });
+
+        this.borderColor =
+            new formattingSettings.ColorPicker({
+                name: "borderColor"
+                ,displayName: "Border color"
+                ,value: {
+                    value: "#000000"
+                }
+            });
+
+        this.borderTransparency =
+            new formattingSettings.NumUpDown({
+                name: "borderTransparency"
+                ,displayName: "Border transparency"
+                ,value: 0
+            });
+
+        this.borderWidth =
+            new formattingSettings.NumUpDown({
+                name: "borderWidth"
+                ,displayName: "Border width"
+                ,value: 0
+            });
+
+        this.shape =
+            new formattingSettings.ItemDropdown({
+                name: "shape"
+                ,displayName: "Shape"
+                ,items: shapeItems
+                ,value: {
+                    displayName: defaultShapeName
+                    ,value: defaultShape
+                }
+            });
+
+        this.slices = [
+            this.color
+            ,this.fillTransparency
+            ,this.borderColor
+            ,this.borderTransparency
+            ,this.borderWidth
+            ,this.shape
+        ];
+    }
+}
 
 export class LineSettings extends FormattingSettingsCard {
 
@@ -180,150 +255,74 @@ export class LegendSettings
         ];
 }
 
+export class MinMaxSettings extends MarkerSettingsBase {
 
-export class MinMaxSettings extends FormattingSettingsCard {
-
-    public color = new formattingSettings.ColorPicker({
-        name: "color"
-        ,displayName: "Color"
-        ,value: {
-            value: "#000000"
-        }
-    });
-
-    public shape = new formattingSettings.ItemDropdown({
-        name: "shape"
-        ,displayName: "Shape"
-        ,items: shapeItems
-        ,value: {
-            displayName: "Circle"
-            ,value: "circle"
-        }
-    });
+    constructor() {
+        super(
+            "circle"
+            ,"Circle"
+        );
+    }
 
     public name: string = "minMax";
     public displayName: string = "Min / Max";
 
-    public slices: FormattingSettingsSlice[] = [
-        this.color
-        ,this.shape
-    ];
 }
 
-export class P5P95Settings extends FormattingSettingsCard {
+export class P5P95Settings extends MarkerSettingsBase {
 
-    public color = new formattingSettings.ColorPicker({
-        name: "color"
-        ,displayName: "Color"
-        ,value: {
-            value: "#000000"
-        }
-    });
-
-    public shape = new formattingSettings.ItemDropdown({
-        name: "shape"
-        ,displayName: "Shape"
-        ,items: shapeItems
-        ,value: {
-            displayName: "Triangle"
-            ,value: "triangle"
-        }
-    });
+    constructor() {
+        super(
+            "triangle"
+            ,"Triangle"
+        );
+    }
 
     public name: string = "p5p95";
     public displayName: string = "P5 / P95";
 
-    public slices: FormattingSettingsSlice[] = [
-        this.color
-        ,this.shape
-    ];
 }
 
-export class P33P67Settings extends FormattingSettingsCard {
+export class P33P67Settings extends MarkerSettingsBase {
 
-    public color = new formattingSettings.ColorPicker({
-        name: "color"
-        ,displayName: "Color"
-        ,value: {
-            value: "#000000"
-        }
-    });
-
-    public shape = new formattingSettings.ItemDropdown({
-        name: "shape"
-        ,displayName: "Shape"
-        ,items: shapeItems
-        ,value: {
-            displayName: "Triangle"
-            ,value: "triangle"
-        }
-    });
+    constructor() {
+        super(
+            "triangle"
+            ,"Triangle"
+        );
+    }
 
     public name: string = "p33p67";
     public displayName: string = "P33 / P67";
 
-    public slices: FormattingSettingsSlice[] = [
-        this.color
-        ,this.shape
-    ];
 }
 
-export class MedianSettings extends FormattingSettingsCard {
+export class MedianSettings extends MarkerSettingsBase {
 
-    public color = new formattingSettings.ColorPicker({
-        name: "color"
-        ,displayName: "Color"
-        ,value: {
-            value: "#000000"
-        }
-    });
-
-    public shape = new formattingSettings.ItemDropdown({
-        name: "shape"
-        ,displayName: "Shape"
-        ,items: shapeItems
-        ,value: {
-            displayName: "Square"
-            ,value: "square"
-        }
-    });
+    constructor() {
+        super(
+            "square"
+            ,"Square"
+        );
+    }
 
     public name: string = "median";
     public displayName: string = "Median";
 
-    public slices: FormattingSettingsSlice[] = [
-        this.color
-        ,this.shape
-    ];
 }
 
-export class AverageSettings extends FormattingSettingsCard {
+export class AverageSettings extends MarkerSettingsBase {
 
-    public color = new formattingSettings.ColorPicker({
-        name: "color"
-        ,displayName: "Color"
-        ,value: {
-            value: "#000000"
-        }
-    });
-
-    public shape = new formattingSettings.ItemDropdown({
-        name: "shape"
-        ,displayName: "Shape"
-        ,items: shapeItems
-        ,value: {
-            displayName: "Diamond"
-            ,value: "diamond"
-        }
-    });
+    constructor() {
+        super(
+            "diamond"
+            ,"Diamond"
+        );
+    }
 
     public name: string = "average";
     public displayName: string = "Average";
 
-    public slices: FormattingSettingsSlice[] = [
-        this.color
-        ,this.shape
-    ];
 }
 
 export class VisualFormattingSettingsModel

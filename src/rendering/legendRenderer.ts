@@ -1,12 +1,12 @@
 import { font } from "powerbi-visuals-utils-formattingutils";
 import {
     drawMarkerShape
+    ,MarkerStyle
 } from "./markerRenderer";
 
 export interface LegendItem {
     label: string;
-    color: string;
-    shape: string;
+    style: MarkerStyle;
     inverted?: boolean;
 }
 
@@ -83,8 +83,7 @@ export function drawLegend(
             ,markerX
             ,y
             ,markerSize
-            ,item.color
-            ,item.shape
+            ,item.style
             ,item.inverted ?? false
         );
 
