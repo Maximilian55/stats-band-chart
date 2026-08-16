@@ -4,6 +4,7 @@ export interface BandChartRow {
     xValues: powerbi.PrimitiveValue[];
     grain: powerbi.PrimitiveValue;
     value: number;
+    selectionId: powerbi.visuals.ISelectionId;
 }
 
 export interface BandChartData {

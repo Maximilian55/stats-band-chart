@@ -33,6 +33,9 @@ import {
 import ITooltipService =
     powerbi.extensibility.ITooltipService;
 
+import ISelectionManager =
+    powerbi.extensibility.ISelectionManager;
+
 export interface ChartRenderOptions {
 
     target: HTMLElement;
@@ -50,6 +53,9 @@ export interface ChartRenderOptions {
 
     tooltipService:
         ITooltipService;
+
+    selectionManager:
+        ISelectionManager;
 }
 
 export function renderChart(
@@ -64,6 +70,7 @@ export function renderChart(
         ,formatString
         ,formattingSettings
         ,tooltipService
+        ,selectionManager
     } = options;
 
     while (
@@ -94,6 +101,14 @@ export function renderChart(
     );
 
     target.appendChild(svg);
+
+    svg.addEventListener(
+        "click",
+        () => {
+
+            selectionManager.clear();
+        }
+    );
 
     /*
         * Margins
@@ -473,7 +488,7 @@ export function renderChart(
 
         lineHitTarget.setAttribute(
             "cursor"
-            ,"default"
+            ,"pointer"
         );
 
         attachBandTooltip(
@@ -482,7 +497,18 @@ export function renderChart(
             ,categoryName
             ,stat
             ,formatters.tooltip
-        )
+        );
+
+        lineHitTarget.addEventListener(
+            "click"
+            ,(event:MouseEvent) => {
+                event.stopPropagation();
+                selectionManager.select(
+                    stat.selectionIds
+                    ,event.ctrlKey
+                );
+            }
+        );
 
         svg.appendChild(
             lineHitTarget

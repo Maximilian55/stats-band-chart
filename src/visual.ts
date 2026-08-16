@@ -45,6 +45,9 @@ import IVisualEventService =
 import ITooltipService =
     powerbi.extensibility.ITooltipService;
 
+import ISelectionManager =
+    powerbi.extensibility.ISelectionManager;
+
 import VisualTooltipDataItem =
     powerbi.extensibility.VisualTooltipDataItem;
 
@@ -61,12 +64,16 @@ export class Visual implements IVisual {
     private formattingSettings: VisualFormattingSettingsModel;
     private formattingSettingsService: FormattingSettingsService;
 
+    private selectionManager: ISelectionManager;
+
     constructor(options: VisualConstructorOptions) {
 
         this.host = options.host;
         this.events = options.host.eventService;
         this.tooltipService = options.host.tooltipService;
         this.target = options.element;
+        this.selectionManager =
+            options.host.createSelectionManager();
 
         this.formattingSettingsService =
             new FormattingSettingsService();
@@ -160,7 +167,7 @@ export class Visual implements IVisual {
                 );
 
             const data =
-                transformData(dataView);
+                transformData(dataView, this.host);
 
             if (!data) {
 
@@ -200,6 +207,8 @@ export class Visual implements IVisual {
                     this.formattingSettings
                 ,tooltipService:
                     this.tooltipService
+                ,selectionManager:
+                    this.selectionManager
             });
 
             this.events.renderingFinished(options);

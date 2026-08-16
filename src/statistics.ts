@@ -1,5 +1,7 @@
 import { BandChartData } from "./dataModel";
 
+import powerbi from "powerbi-visuals-api";
+
 export interface BandStatistics {
     xValues: string[];
 
@@ -11,6 +13,7 @@ export interface BandStatistics {
     p67: number;
     p95: number;
     max: number;
+    selectionIds: powerbi.visuals.ISelectionId[];
 }
 
 export function calculateBandStatistics(
@@ -20,6 +23,8 @@ export function calculateBandStatistics(
     const groups = new Map<string, {
         xValues: string[];
         values: number[];
+        selectionIds:
+            powerbi.visuals.ISelectionId[];
     }>();
 
     for (const row of data.rows) {
@@ -38,12 +43,15 @@ export function calculateBandStatistics(
             group = {
                 xValues
                 ,values: []
+                ,selectionIds: []
             };
 
             groups.set(key, group);
         }
 
         group.values.push(row.value);
+
+        group.selectionIds.push(row.selectionId);
     }
 
     const results: BandStatistics[] = [];
@@ -64,7 +72,7 @@ export function calculateBandStatistics(
 
         results.push({
             xValues: group.xValues
-
+            ,selectionIds: group.selectionIds
             ,min: values[0]
             ,p05: percentile(values, 0.05)
             ,p33: percentile(values, 0.33)

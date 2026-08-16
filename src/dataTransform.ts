@@ -8,8 +8,12 @@ import {
     BandChartRow
 } from "./dataModel";
 
+import IVisualHost =
+    powerbi.extensibility.visual.IVisualHost;
+
 export function transformData(
     dataView: DataView
+    ,host: IVisualHost
 ): BandChartData | null {
 
     const table = dataView.table;
@@ -57,7 +61,13 @@ export function transformData(
 
     const rows: BandChartRow[] = [];
 
-    for (const row of table.rows) {
+    for (
+        let rowIndex = 0;
+        rowIndex < table.rows.length;
+        rowIndex++
+    ) {
+        const row = 
+            table.rows[rowIndex];
 
         const rawValue = row[measureIndex];
 
@@ -69,10 +79,20 @@ export function transformData(
             continue;
         }
 
+        const selectionId =
+            host
+                .createSelectionIdBuilder()
+                .withTable(
+                    table
+                    ,rowIndex
+                )
+                .createSelectionId();
+
         rows.push({
-            xValues: xIndexes.map(index => row[index]),
-            grain: row[grainIndex],
-            value: rawValue
+            xValues: xIndexes.map(index => row[index])
+            ,grain: row[grainIndex]
+            ,value: rawValue
+            ,selectionId
         });
     }
 
