@@ -13,8 +13,14 @@ import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel
 import "./../style/visual.less";
 
 import { transformData } from "./dataTransform";
-import { calculateBandStatistics, BandStatistics } from "./statistics";
-import { VisualFormattingSettingsModel } from "./settings";
+import {
+    calculateBandStatistics,
+    BandStatistics
+} from "./statistics";
+
+import {
+    VisualFormattingSettingsModel
+} from "./settings";
 
 import VisualConstructorOptions =
     powerbi.extensibility.visual.VisualConstructorOptions;
@@ -25,11 +31,18 @@ import VisualUpdateOptions =
 import IVisual =
     powerbi.extensibility.visual.IVisual;
 
+import IVisualHost =
+    powerbi.extensibility.visual.IVisualHost;
+
 import IVisualEventService =
     powerbi.extensibility.IVisualEventService;
 
+import DataView =
+    powerbi.DataView;
+
 export class Visual implements IVisual {
 
+    private host: IVisualHost;
     private events: IVisualEventService;
     private target: HTMLElement;
 
@@ -37,6 +50,8 @@ export class Visual implements IVisual {
     private formattingSettingsService: FormattingSettingsService;
 
     constructor(options: VisualConstructorOptions) {
+
+        this.host = options.host;
         this.events = options.host.eventService;
         this.target = options.element;
 
@@ -59,16 +74,44 @@ export class Visual implements IVisual {
             }
 
             this.formattingSettings =
-                this.formattingSettingsService.populateFormattingSettingsModel(
-                    VisualFormattingSettingsModel,
-                    dataView
+                this.formattingSettingsService
+                    .populateFormattingSettingsModel(
+                        VisualFormattingSettingsModel,
+                        dataView
+                    );
+
+            this.applyThemeDefaults(dataView);
+
+            /*
+             * Keep numeric formatting values
+             * within reasonable limits.
+             */
+            this.formattingSettings.line.lineThickness.value =
+                Math.max(
+                    1,
+                    Math.min(
+                        10,
+                        this.formattingSettings.line.lineThickness.value
+                    )
                 );
 
-            const data = transformData(dataView);
+            this.formattingSettings.points.pointSize.value =
+                Math.max(
+                    1,
+                    Math.min(
+                        20,
+                        this.formattingSettings.points.pointSize.value
+                    )
+                );
+
+            const data =
+                transformData(dataView);
 
             if (!data) {
+
                 this.showMessage(
-                    "Add at least one X Axis field, one Grain field, and one Measure."
+                    "Add at least one X Axis field, " +
+                    "one Grain field, and one Measure."
                 );
 
                 this.events.renderingFinished(options);
@@ -79,6 +122,7 @@ export class Visual implements IVisual {
                 calculateBandStatistics(data);
 
             if (statistics.length === 0) {
+
                 this.showMessage(
                     "No valid numeric observations were returned."
                 );
@@ -111,6 +155,164 @@ export class Visual implements IVisual {
                 String(error)
             );
         }
+    }
+
+    /**
+     * Apply colors from the current Power BI report theme
+     * unless the user has explicitly formatted the property.
+     */
+    private applyThemeDefaults(
+        dataView: DataView
+    ): void {
+
+        const palette =
+            this.host.colorPalette;
+
+        const lineColor =
+            palette.getColor(
+                "StatsBandChart.Line"
+            ).value;
+
+        const minMaxColor =
+            palette.getColor(
+                "StatsBandChart.MinMax"
+            ).value;
+
+        const p5p95Color =
+            palette.getColor(
+                "StatsBandChart.P5P95"
+            ).value;
+
+        const p33p67Color =
+            palette.getColor(
+                "StatsBandChart.P33P67"
+            ).value;
+
+        const medianColor =
+            palette.getColor(
+                "StatsBandChart.Median"
+            ).value;
+
+        const averageColor =
+            palette.getColor(
+                "StatsBandChart.Average"
+            ).value;
+
+        if (
+            !this.hasFormattingProperty(
+                dataView,
+                "line",
+                "lineColor"
+            )
+        ) {
+            this.formattingSettings
+                .line
+                .lineColor
+                .value = {
+                    value: lineColor
+                };
+        }
+
+        if (
+            !this.hasFormattingProperty(
+                dataView,
+                "minMax",
+                "color"
+            )
+        ) {
+            this.formattingSettings
+                .minMax
+                .color
+                .value = {
+                    value: minMaxColor
+                };
+        }
+
+        if (
+            !this.hasFormattingProperty(
+                dataView,
+                "p5p95",
+                "color"
+            )
+        ) {
+            this.formattingSettings
+                .p5p95
+                .color
+                .value = {
+                    value: p5p95Color
+                };
+        }
+
+        if (
+            !this.hasFormattingProperty(
+                dataView,
+                "p33p67",
+                "color"
+            )
+        ) {
+            this.formattingSettings
+                .p33p67
+                .color
+                .value = {
+                    value: p33p67Color
+                };
+        }
+
+        if (
+            !this.hasFormattingProperty(
+                dataView,
+                "median",
+                "color"
+            )
+        ) {
+            this.formattingSettings
+                .median
+                .color
+                .value = {
+                    value: medianColor
+                };
+        }
+
+        if (
+            !this.hasFormattingProperty(
+                dataView,
+                "average",
+                "color"
+            )
+        ) {
+            this.formattingSettings
+                .average
+                .color
+                .value = {
+                    value: averageColor
+                };
+        }
+    }
+
+    /**
+     * Returns true when the user has explicitly
+     * formatted a property.
+     */
+    private hasFormattingProperty(
+        dataView: DataView,
+        objectName: string,
+        propertyName: string
+    ): boolean {
+
+        const object =
+            dataView.metadata.objects?.[
+                objectName
+            ];
+
+        if (!object) {
+            return false;
+        }
+
+        return Object.prototype
+            .hasOwnProperty.call(
+                object,
+                propertyName
+            );
     }
 
     private renderChart(
@@ -150,10 +352,14 @@ export class Visual implements IVisual {
         };
 
         const chartWidth =
-            width - margin.left - margin.right;
+            width -
+            margin.left -
+            margin.right;
 
         const chartHeight =
-            height - margin.top - margin.bottom;
+            height -
+            margin.top -
+            margin.bottom;
 
         if (
             chartWidth <= 0 ||
@@ -163,9 +369,8 @@ export class Visual implements IVisual {
         }
 
         /*
-         * Overall Y-axis range.
+         * Determine overall Y range.
          */
-
         const overallMin =
             Math.min(
                 ...statistics.map(
@@ -179,11 +384,6 @@ export class Visual implements IVisual {
                     stat => stat.max
                 )
             );
-
-        /*
-         * Give the chart a small amount
-         * of vertical padding.
-         */
 
         const range =
             overallMax - overallMin;
@@ -215,13 +415,118 @@ export class Visual implements IVisual {
         };
 
         /*
-         * Equal spacing for each X-axis group.
+         * Give every X-axis category
+         * an equal amount of space.
          */
-
         const xSpacing =
             chartWidth /
             statistics.length;
 
+        /*
+         * Formatting values
+         */
+        const lineColor =
+            this.formattingSettings
+                .line
+                .lineColor
+                .value
+                .value;
+
+        const lineThickness =
+            this.formattingSettings
+                .line
+                .lineThickness
+                .value;
+
+        const pointSize =
+            this.formattingSettings
+                .points
+                .pointSize
+                .value;
+
+        const minMaxColor =
+            this.formattingSettings
+                .minMax
+                .color
+                .value
+                .value;
+
+        const minMaxShape =
+            String(
+                this.formattingSettings
+                    .minMax
+                    .shape
+                    .value
+                    .value
+            );
+
+        const p5p95Color =
+            this.formattingSettings
+                .p5p95
+                .color
+                .value
+                .value;
+
+        const p5p95Shape =
+            String(
+                this.formattingSettings
+                    .p5p95
+                    .shape
+                    .value
+                    .value
+            );
+
+        const p33p67Color =
+            this.formattingSettings
+                .p33p67
+                .color
+                .value
+                .value;
+
+        const p33p67Shape =
+            String(
+                this.formattingSettings
+                    .p33p67
+                    .shape
+                    .value
+                    .value
+            );
+
+        const medianColor =
+            this.formattingSettings
+                .median
+                .color
+                .value
+                .value;
+
+        const medianShape =
+            String(
+                this.formattingSettings
+                    .median
+                    .shape
+                    .value
+                    .value
+            );
+
+        const averageColor =
+            this.formattingSettings
+                .average
+                .color
+                .value
+                .value;
+
+        const averageShape =
+            String(
+                this.formattingSettings
+                    .average
+                    .shape
+                    .value
+                    .value
+            );
+
+        /*
+         * Draw each category.
+         */
         for (
             let i = 0;
             i < statistics.length;
@@ -239,7 +544,6 @@ export class Visual implements IVisual {
             /*
              * Min-to-max line.
              */
-
             const line =
                 document.createElementNS(
                     svgNamespace,
@@ -268,66 +572,112 @@ export class Visual implements IVisual {
 
             line.setAttribute(
                 "stroke",
-                "black"
+                lineColor
             );
 
             line.setAttribute(
                 "stroke-width",
-                "2"
+                lineThickness.toString()
             );
 
             svg.appendChild(line);
 
             /*
-             * Statistic points.
+             * Min / Max
              */
+            this.drawMarker(
+                svg,
+                x,
+                yScale(stat.min),
+                pointSize,
+                minMaxColor,
+                minMaxShape
+            );
 
-            const points = [
-                stat.min,
-                stat.p05,
-                stat.p33,
-                stat.p50,
-                stat.average,
-                stat.p67,
-                stat.p95,
-                stat.max
-            ];
+            this.drawMarker(
+                svg,
+                x,
+                yScale(stat.max),
+                pointSize,
+                minMaxColor,
+                minMaxShape
+            );
 
-            for (const value of points) {
+            /*
+             * P5 / P95
+             *
+             * P5 is always inverted.
+             */
+            this.drawMarker(
+                svg,
+                x,
+                yScale(stat.p05),
+                pointSize,
+                p5p95Color,
+                p5p95Shape,
+                true
+            );
 
-                const circle =
-                    document.createElementNS(
-                        svgNamespace,
-                        "circle"
-                    );
+            this.drawMarker(
+                svg,
+                x,
+                yScale(stat.p95),
+                pointSize,
+                p5p95Color,
+                p5p95Shape
+            );
 
-                circle.setAttribute(
-                    "cx",
-                    x.toString()
-                );
+            /*
+             * P33 / P67
+             *
+             * P33 is always inverted.
+             */
+            this.drawMarker(
+                svg,
+                x,
+                yScale(stat.p33),
+                pointSize,
+                p33p67Color,
+                p33p67Shape,
+                true
+            );
 
-                circle.setAttribute(
-                    "cy",
-                    yScale(value).toString()
-                );
+            this.drawMarker(
+                svg,
+                x,
+                yScale(stat.p67),
+                pointSize,
+                p33p67Color,
+                p33p67Shape
+            );
 
-                circle.setAttribute(
-                    "r",
-                    "4"
-                );
+            /*
+             * Median
+             */
+            this.drawMarker(
+                svg,
+                x,
+                yScale(stat.p50),
+                pointSize,
+                medianColor,
+                medianShape
+            );
 
-                circle.setAttribute(
-                    "fill",
-                    "black"
-                );
-
-                svg.appendChild(circle);
-            }
+            /*
+             * Average
+             */
+            this.drawMarker(
+                svg,
+                x,
+                yScale(stat.average),
+                pointSize,
+                averageColor,
+                averageShape
+            );
 
             /*
              * X-axis category label.
              */
-
             const label =
                 document.createElementNS(
                     svgNamespace,
@@ -363,11 +713,184 @@ export class Visual implements IVisual {
         }
     }
 
+    /**
+     * Draw a marker.
+     *
+     * If inverted is true, the entire marker
+     * is rotated 180 degrees around its center.
+     */
+    private drawMarker(
+        svg: SVGSVGElement,
+        x: number,
+        y: number,
+        size: number,
+        color: string,
+        shape: string,
+        inverted: boolean = false
+    ): void {
+
+        const svgNamespace =
+            "http://www.w3.org/2000/svg";
+
+        let marker: SVGElement;
+
+        /*
+         * Square
+         */
+        if (shape === "square") {
+
+            const square =
+                document.createElementNS(
+                    svgNamespace,
+                    "rect"
+                );
+
+            square.setAttribute(
+                "x",
+                (x - size).toString()
+            );
+
+            square.setAttribute(
+                "y",
+                (y - size).toString()
+            );
+
+            square.setAttribute(
+                "width",
+                (size * 2).toString()
+            );
+
+            square.setAttribute(
+                "height",
+                (size * 2).toString()
+            );
+
+            square.setAttribute(
+                "fill",
+                color
+            );
+
+            marker = square;
+        }
+
+        /*
+         * Diamond
+         */
+        else if (shape === "diamond") {
+
+            const diamond =
+                document.createElementNS(
+                    svgNamespace,
+                    "polygon"
+                );
+
+            const points = [
+                `${x},${y - size}`,
+                `${x + size},${y}`,
+                `${x},${y + size}`,
+                `${x - size},${y}`
+            ].join(" ");
+
+            diamond.setAttribute(
+                "points",
+                points
+            );
+
+            diamond.setAttribute(
+                "fill",
+                color
+            );
+
+            marker = diamond;
+        }
+
+        /*
+         * Triangle
+         */
+        else if (shape === "triangle") {
+
+            const triangle =
+                document.createElementNS(
+                    svgNamespace,
+                    "polygon"
+                );
+
+            const points = [
+                `${x},${y - size}`,
+                `${x + size},${y + size}`,
+                `${x - size},${y + size}`
+            ].join(" ");
+
+            triangle.setAttribute(
+                "points",
+                points
+            );
+
+            triangle.setAttribute(
+                "fill",
+                color
+            );
+
+            marker = triangle;
+        }
+
+        /*
+         * Default: Circle
+         */
+        else {
+
+            const circle =
+                document.createElementNS(
+                    svgNamespace,
+                    "circle"
+                );
+
+            circle.setAttribute(
+                "cx",
+                x.toString()
+            );
+
+            circle.setAttribute(
+                "cy",
+                y.toString()
+            );
+
+            circle.setAttribute(
+                "r",
+                size.toString()
+            );
+
+            circle.setAttribute(
+                "fill",
+                color
+            );
+
+            marker = circle;
+        }
+
+        /*
+         * Always use the same inversion rule.
+         *
+         * P5 and P33 call this method with
+         * inverted = true.
+         */
+        if (inverted) {
+
+            marker.setAttribute(
+                "transform",
+                `rotate(180 ${x} ${y})`
+            );
+        }
+
+        svg.appendChild(marker);
+    }
+
     private clearTarget(): void {
 
         while (
             this.target.firstChild
         ) {
+
             this.target.removeChild(
                 this.target.firstChild
             );
@@ -381,7 +904,9 @@ export class Visual implements IVisual {
         this.clearTarget();
 
         const element =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         element.className =
             "bandChartMessage";

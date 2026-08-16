@@ -1,25 +1,25 @@
 {
     "dataRoles": [
         {
-            "displayName": "X Axis"
-            ,"name": "xAxis"
-            ,"kind": "Grouping"
+            "displayName": "X Axis",
+            "name": "xAxis",
+            "kind": "Grouping"
+        },
+        {
+            "displayName": "Grain",
+            "name": "grain",
+            "kind": "Grouping"
+        },
+        {
+            "displayName": "Measure Data",
+            "name": "measure",
+            "kind": "Measure"
         }
-        ,{
-            "displayName": "Grain"
-            ,"name": "grain"
-            ,"kind": "Grouping"
-        }
-        ,{
-            "displayName": "Measure Data"
-            ,"name": "measure"
-            ,"kind": "Measure"
-        }
-    ]
-    ,"objects": {
-        "dataPoint": {
+    ],
+    "objects": {
+        "line": {
             "properties": {
-                "defaultColor": {
+                "lineColor": {
                     "type": {
                         "fill": {
                             "solid": {
@@ -27,13 +27,26 @@
                             }
                         }
                     }
-                }
-                ,"showAllDataPoints": {
+                },
+                "lineThickness": {
                     "type": {
-                        "bool": true
+                        "numeric": true
                     }
                 }
-                ,"fill": {
+            }
+        },
+        "points": {
+            "properties": {
+                "pointSize": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+            }
+        },
+        "minMax": {
+            "properties": {
+                "color": {
                     "type": {
                         "fill": {
                             "solid": {
@@ -41,51 +54,116 @@
                             }
                         }
                     }
-                }
-                ,"fillRule": {
+                },
+                "shape": {
                     "type": {
-                        "fill": {}
+                        "enumeration": []
                     }
                 }
-                ,"fontSize": {
+            }
+        },
+        "p5p95": {
+            "properties": {
+                "color": {
                     "type": {
-                        "formatting": {
-                            "fontSize": true
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
                         }
+                    }
+                },
+                "shape": {
+                    "type": {
+                        "enumeration": []
+                    }
+                }
+            }
+        },
+        "p33p67": {
+            "properties": {
+                "color": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "shape": {
+                    "type": {
+                        "enumeration": []
+                    }
+                }
+            }
+        },
+        "median": {
+            "properties": {
+                "color": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "shape": {
+                    "type": {
+                        "enumeration": []
+                    }
+                }
+            }
+        },
+        "average": {
+            "properties": {
+                "color": {
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "shape": {
+                    "type": {
+                        "enumeration": []
                     }
                 }
             }
         }
-    }
-    ,"dataViewMappings": [
+    },
+    "dataViewMappings": [
         {
             "conditions": [
                 {
                     "xAxis": {
                         "min": 1
-                    }
-                    ,"grain": {
+                    },
+                    "grain": {
                         "max": 1
-                    }
-                    ,"measure": {
+                    },
+                    "measure": {
                         "max": 1
                     }
                 }
-            ]
-            ,"table": {
+            ],
+            "table": {
                 "rows": {
                     "select": [
                         {
                             "for": {
                                 "in": "xAxis"
                             }
-                        }
-                        ,{
+                        },
+                        {
                             "for": {
                                 "in": "grain"
                             }
-                        }
-                        ,{
+                        },
+                        {
                             "for": {
                                 "in": "measure"
                             }
@@ -94,6 +172,6 @@
                 }
             }
         }
-    ]
-    ,"privileges": []
+    ],
+    "privileges": []
 }
