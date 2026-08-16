@@ -390,3 +390,71 @@ export function drawYAxis(
         axisLine
     );
 }
+
+export interface XAxisLabelOptions {
+    svg: SVGSVGElement;
+    x: number;
+    y: number;
+    text: string;
+    rotation: number;
+    fontSize: number;
+}
+
+export function drawXAxisLabel(
+    options: XAxisLabelOptions
+): void {
+
+    const {
+        svg
+        ,x
+        ,y
+        ,text
+        ,rotation
+        ,fontSize
+    } = options;
+
+    const svgNamespace =
+        "http://www.w3.org/2000/svg";
+
+    const label =
+        document.createElementNS(
+            svgNamespace
+            ,"text"
+        );
+
+    label.setAttribute(
+        "x"
+        ,x.toString()
+    );
+
+    label.setAttribute(
+        "y"
+        ,y.toString()
+    );
+
+    label.setAttribute(
+        "text-anchor"
+        ,rotation === 0
+            ? "middle"
+            : rotation > 0
+                ? "start"
+                : "end"
+    );
+
+    label.setAttribute(
+        "font-size"
+        ,fontSize.toString()
+    );
+
+    label.setAttribute(
+        "transform"
+        ,`rotate(${rotation} ${x} ${y})`
+    );
+
+    label.textContent =
+        text;
+
+    svg.appendChild(
+        label
+    );
+}
