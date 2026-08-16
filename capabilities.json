@@ -182,6 +182,25 @@
                 }
             }
         }
+        ,"legend": {
+            "properties": {
+                "show": {
+                    "type": {
+                        "bool": true
+                    }
+                }
+                ,"fontSize": {
+                    "type": {
+                        "numeric": true
+                    }
+                }
+                ,"bold": {
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        }
     }
     ,"dataViewMappings": [
         {

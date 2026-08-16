@@ -305,3 +305,159 @@ export function drawMarker(
         hitTarget
     );
 }
+
+export function drawMarkerShape(
+    svg: SVGSVGElement
+    ,x: number
+    ,y: number
+    ,size: number
+    ,color: string
+    ,shape: string
+    ,inverted: boolean = false
+): SVGElement {
+
+    const svgNamespace =
+        "http://www.w3.org/2000/svg";
+
+    let marker: SVGElement;
+
+    if (shape === "square") {
+
+        const square =
+            document.createElementNS(
+                svgNamespace
+                ,"rect"
+            );
+
+        square.setAttribute(
+            "x"
+            ,(x - size).toString()
+        );
+
+        square.setAttribute(
+            "y"
+            ,(y - size).toString()
+        );
+
+        square.setAttribute(
+            "width"
+            ,(size * 2).toString()
+        );
+
+        square.setAttribute(
+            "height"
+            ,(size * 2).toString()
+        );
+
+        square.setAttribute(
+            "fill"
+            ,color
+        );
+
+        marker = square;
+    }
+
+    else if (
+        shape === "diamond"
+    ) {
+
+        const diamond =
+            document.createElementNS(
+                svgNamespace
+                ,"polygon"
+            );
+
+        const points = [
+            `${x},${y - size}`
+            ,`${x + size},${y}`
+            ,`${x},${y + size}`
+            ,`${x - size},${y}`
+        ].join(" ");
+
+        diamond.setAttribute(
+            "points"
+            ,points
+        );
+
+        diamond.setAttribute(
+            "fill"
+            ,color
+        );
+
+        marker = diamond;
+    }
+
+    else if (
+        shape === "triangle"
+    ) {
+
+        const triangle =
+            document.createElementNS(
+                svgNamespace
+                ,"polygon"
+            );
+
+        const points = [
+            `${x},${y - size}`
+            ,`${x + size},${y + size}`
+            ,`${x - size},${y + size}`
+        ].join(" ");
+
+        triangle.setAttribute(
+            "points"
+            ,points
+        );
+
+        triangle.setAttribute(
+            "fill"
+            ,color
+        );
+
+        marker = triangle;
+    }
+
+    else {
+
+        const circle =
+            document.createElementNS(
+                svgNamespace
+                ,"circle"
+            );
+
+        circle.setAttribute(
+            "cx"
+            ,x.toString()
+        );
+
+        circle.setAttribute(
+            "cy"
+            ,y.toString()
+        );
+
+        circle.setAttribute(
+            "r"
+            ,size.toString()
+        );
+
+        circle.setAttribute(
+            "fill"
+            ,color
+        );
+
+        marker = circle;
+    }
+
+    if (inverted) {
+
+        marker.setAttribute(
+            "transform"
+            ,`rotate(180 ${x} ${y})`
+        );
+    }
+
+    svg.appendChild(
+        marker
+    );
+
+    return marker;
+}

@@ -30,6 +30,10 @@ import {
     attachBandTooltip
 } from "./tooltipRenderer";
 
+import {
+    drawLegend    
+} from "./legendRenderer";
+
 import ITooltipService =
     powerbi.extensibility.ITooltipService;
 
@@ -116,10 +120,20 @@ export function renderChart(
         * Left margin is larger now because
         * the Y-axis needs room for labels.
         */
+
+    const showLegend =
+        formattingSettings
+            .legend
+            .show
+            .value;
+
     const margin = {
         top: 20
         ,right: 20
-        ,bottom: 80
+        ,bottom:
+            showLegend
+                ? 110
+                : 80
         ,left: 80
     };
 
@@ -375,6 +389,52 @@ export function renderChart(
             .xAxis
             .labelRotation
             .value;
+
+    if (showLegend) {
+        drawLegend({
+            svg
+            ,items: [
+                {
+                    label: "Min / Max"
+                    ,color: minMaxColor
+                    ,shape: minMaxShape
+                }
+                ,{
+                    label: "P05 / P95"
+                    ,color: p5p95Color
+                    ,shape: p5p95Shape
+                }
+                ,{
+                    label: "P33 / P67"
+                    ,color: p33p67Color
+                    ,shape: p33p67Shape
+                }
+                ,{
+                    label: "P50"
+                    ,color: medianColor
+                    ,shape: medianShape
+                }
+                ,{
+                    label: "Average"
+                    ,color: averageColor
+                    ,shape: averageShape
+                }
+            ]
+            ,width
+            ,y: height - 30
+            ,fontSize:
+                formattingSettings
+                    .legend
+                    .fontSize
+                    .value
+            ,bold:
+                formattingSettings
+                    .legend
+                    .bold
+                    .value
+        });
+    }
+    
 
     /*
         * Draw categories.

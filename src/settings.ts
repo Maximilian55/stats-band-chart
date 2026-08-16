@@ -142,6 +142,45 @@ export class YAxisSettings extends FormattingSettingsCard {
 
 }
 
+export class LegendSettings
+    extends FormattingSettingsCard {
+
+    public show =
+        new formattingSettings.ToggleSwitch({
+            name: "show"
+            ,displayName: "Show"
+            ,value: true
+        });
+
+    public fontSize =
+        new formattingSettings.NumUpDown({
+            name: "fontSize"
+            ,displayName: "Font size"
+            ,value: 11
+        });
+
+    public bold =
+        new formattingSettings.ToggleSwitch({
+            name: "bold"
+            ,displayName: "Bold"
+            ,value: false
+        });
+
+    public name:
+        string = "legend";
+
+    public displayName:
+        string = "Legend";
+
+    public slices:
+        FormattingSettingsSlice[] = [
+            this.show
+            ,this.fontSize
+            ,this.bold
+        ];
+}
+
+
 export class MinMaxSettings extends FormattingSettingsCard {
 
     public color = new formattingSettings.ColorPicker({
@@ -296,6 +335,8 @@ export class VisualFormattingSettingsModel
     public xAxis = new XAxisSettings();
     public yAxis = new YAxisSettings();
 
+    public legend = new LegendSettings();
+
     public minMax = new MinMaxSettings();
     public p5p95 = new P5P95Settings();
     public p33p67 = new P33P67Settings();
@@ -307,6 +348,7 @@ export class VisualFormattingSettingsModel
         ,this.points
         ,this.xAxis
         ,this.yAxis
+        ,this.legend
         ,this.minMax
         ,this.p5p95
         ,this.p33p67
