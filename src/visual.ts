@@ -13,7 +13,7 @@ import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel
 import "./../style/visual.less";
 
 import { transformData } from "./dataTransform";
-import { calculateBandStatistics } from "./statistics";
+import { calculateBandStatistics, BandStatistics } from "./statistics";
 import { VisualFormattingSettingsModel } from "./settings";
 
 import VisualConstructorOptions =
@@ -37,7 +37,6 @@ export class Visual implements IVisual {
     private formattingSettingsService: FormattingSettingsService;
 
     constructor(options: VisualConstructorOptions) {
-
         this.events = options.host.eventService;
         this.target = options.element;
 
@@ -68,7 +67,6 @@ export class Visual implements IVisual {
             const data = transformData(dataView);
 
             if (!data) {
-
                 this.showMessage(
                     "Add at least one X Axis field, one Grain field, and one Measure."
                 );
@@ -81,7 +79,6 @@ export class Visual implements IVisual {
                 calculateBandStatistics(data);
 
             if (statistics.length === 0) {
-
                 this.showMessage(
                     "No valid numeric observations were returned."
                 );
@@ -90,102 +87,11 @@ export class Visual implements IVisual {
                 return;
             }
 
-            this.clearTarget();
-
-            const container =
-                document.createElement("div");
-
-            container.className =
-                "bandChartDebug";
-
-            /*
-             * Header
-             */
-
-            this.appendDataRow(
-                container,
-                "X Axis",
-                data.xColumns
-                    .map(column => column.displayName)
-                    .join(" > ")
+            this.renderChart(
+                statistics,
+                options.viewport.width,
+                options.viewport.height
             );
-
-            this.appendDataRow(
-                container,
-                "Grain",
-                data.grainColumn.displayName
-            );
-
-            this.appendDataRow(
-                container,
-                "Measure",
-                data.measureColumn.displayName
-            );
-
-            this.appendDataRow(
-                container,
-                "Observation count",
-                data.rows.length.toString()
-            );
-
-            this.appendDataRow(
-                container,
-                "Band count",
-                statistics.length.toString()
-            );
-
-            /*
-             * Add spacing before statistics.
-             */
-
-            const separator =
-                document.createElement("hr");
-
-            container.appendChild(separator);
-
-            /*
-             * Display statistics for each X Axis group.
-             *
-             * This is temporary validation output.
-             * Later this section will be replaced by the
-             * SVG band chart renderer.
-             */
-
-            for (const stat of statistics) {
-
-                const group =
-                    document.createElement("div");
-
-                group.className =
-                    "bandChartStatGroup";
-
-                const title =
-                    document.createElement("strong");
-
-                title.textContent =
-                    stat.xValues.join(" > ");
-
-                group.appendChild(title);
-
-                const values =
-                    document.createElement("div");
-
-                values.textContent =
-                    `Min: ${stat.min.toFixed(2)} | ` +
-                    `P5: ${stat.p05.toFixed(2)} | ` +
-                    `P33: ${stat.p33.toFixed(2)} | ` +
-                    `P50: ${stat.p50.toFixed(2)} | ` +
-                    `Avg: ${stat.average.toFixed(2)} | ` +
-                    `P67: ${stat.p67.toFixed(2)} | ` +
-                    `P95: ${stat.p95.toFixed(2)} | ` +
-                    `Max: ${stat.max.toFixed(2)}`;
-
-                group.appendChild(values);
-
-                container.appendChild(group);
-            }
-
-            this.target.appendChild(container);
 
             this.events.renderingFinished(options);
         }
@@ -207,24 +113,267 @@ export class Visual implements IVisual {
         }
     }
 
-    /**
-     * Removes all existing elements
-     * from the visual container.
-     */
+    private renderChart(
+        statistics: BandStatistics[],
+        width: number,
+        height: number
+    ): void {
+
+        this.clearTarget();
+
+        const svgNamespace =
+            "http://www.w3.org/2000/svg";
+
+        const svg =
+            document.createElementNS(
+                svgNamespace,
+                "svg"
+            );
+
+        svg.setAttribute(
+            "width",
+            width.toString()
+        );
+
+        svg.setAttribute(
+            "height",
+            height.toString()
+        );
+
+        this.target.appendChild(svg);
+
+        const margin = {
+            top: 20,
+            right: 20,
+            bottom: 50,
+            left: 40
+        };
+
+        const chartWidth =
+            width - margin.left - margin.right;
+
+        const chartHeight =
+            height - margin.top - margin.bottom;
+
+        if (
+            chartWidth <= 0 ||
+            chartHeight <= 0
+        ) {
+            return;
+        }
+
+        /*
+         * Overall Y-axis range.
+         */
+
+        const overallMin =
+            Math.min(
+                ...statistics.map(
+                    stat => stat.min
+                )
+            );
+
+        const overallMax =
+            Math.max(
+                ...statistics.map(
+                    stat => stat.max
+                )
+            );
+
+        /*
+         * Give the chart a small amount
+         * of vertical padding.
+         */
+
+        const range =
+            overallMax - overallMin;
+
+        const padding =
+            range === 0
+                ? 1
+                : range * 0.05;
+
+        const yMin =
+            overallMin - padding;
+
+        const yMax =
+            overallMax + padding;
+
+        const yScale = (
+            value: number
+        ): number => {
+
+            const ratio =
+                (value - yMin) /
+                (yMax - yMin);
+
+            return (
+                margin.top +
+                chartHeight -
+                ratio * chartHeight
+            );
+        };
+
+        /*
+         * Equal spacing for each X-axis group.
+         */
+
+        const xSpacing =
+            chartWidth /
+            statistics.length;
+
+        for (
+            let i = 0;
+            i < statistics.length;
+            i++
+        ) {
+
+            const stat =
+                statistics[i];
+
+            const x =
+                margin.left +
+                xSpacing * i +
+                xSpacing / 2;
+
+            /*
+             * Min-to-max line.
+             */
+
+            const line =
+                document.createElementNS(
+                    svgNamespace,
+                    "line"
+                );
+
+            line.setAttribute(
+                "x1",
+                x.toString()
+            );
+
+            line.setAttribute(
+                "x2",
+                x.toString()
+            );
+
+            line.setAttribute(
+                "y1",
+                yScale(stat.max).toString()
+            );
+
+            line.setAttribute(
+                "y2",
+                yScale(stat.min).toString()
+            );
+
+            line.setAttribute(
+                "stroke",
+                "black"
+            );
+
+            line.setAttribute(
+                "stroke-width",
+                "2"
+            );
+
+            svg.appendChild(line);
+
+            /*
+             * Statistic points.
+             */
+
+            const points = [
+                stat.min,
+                stat.p05,
+                stat.p33,
+                stat.p50,
+                stat.average,
+                stat.p67,
+                stat.p95,
+                stat.max
+            ];
+
+            for (const value of points) {
+
+                const circle =
+                    document.createElementNS(
+                        svgNamespace,
+                        "circle"
+                    );
+
+                circle.setAttribute(
+                    "cx",
+                    x.toString()
+                );
+
+                circle.setAttribute(
+                    "cy",
+                    yScale(value).toString()
+                );
+
+                circle.setAttribute(
+                    "r",
+                    "4"
+                );
+
+                circle.setAttribute(
+                    "fill",
+                    "black"
+                );
+
+                svg.appendChild(circle);
+            }
+
+            /*
+             * X-axis category label.
+             */
+
+            const label =
+                document.createElementNS(
+                    svgNamespace,
+                    "text"
+                );
+
+            label.setAttribute(
+                "x",
+                x.toString()
+            );
+
+            label.setAttribute(
+                "y",
+                (
+                    height - 15
+                ).toString()
+            );
+
+            label.setAttribute(
+                "text-anchor",
+                "middle"
+            );
+
+            label.setAttribute(
+                "font-size",
+                "12"
+            );
+
+            label.textContent =
+                stat.xValues.join(" > ");
+
+            svg.appendChild(label);
+        }
+    }
+
     private clearTarget(): void {
 
-        while (this.target.firstChild) {
-
+        while (
+            this.target.firstChild
+        ) {
             this.target.removeChild(
                 this.target.firstChild
             );
         }
     }
 
-    /**
-     * Displays a simple message inside
-     * the visual.
-     */
     private showMessage(
         message: string
     ): void {
@@ -240,46 +389,16 @@ export class Visual implements IVisual {
         element.textContent =
             message;
 
-        this.target.appendChild(element);
+        this.target.appendChild(
+            element
+        );
     }
 
-    /**
-     * Adds a label/value row to
-     * the supplied container.
-     */
-    private appendDataRow(
-        parent: HTMLElement,
-        label: string,
-        value: string
-    ): void {
-
-        const row =
-            document.createElement("div");
-
-        const labelElement =
-            document.createElement("strong");
-
-        labelElement.textContent =
-            `${label}: `;
-
-        const valueElement =
-            document.createTextNode(value);
-
-        row.appendChild(labelElement);
-        row.appendChild(valueElement);
-
-        parent.appendChild(row);
-    }
-
-    /**
-     * Returns properties pane formatting model
-     * content hierarchies, properties, and
-     * latest formatting values.
-     */
     public getFormattingModel():
         powerbi.visuals.FormattingModel {
 
-        return this.formattingSettingsService
+        return this
+            .formattingSettingsService
             .buildFormattingModel(
                 this.formattingSettings
             );
