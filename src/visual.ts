@@ -24,6 +24,18 @@ import {
     VisualFormattingSettingsModel
 } from "./settings";
 
+import {
+    getNiceStep
+} from "./utils/chartMath"
+
+import {
+    drawMarker
+} from "./rendering/markerRenderer"
+
+import {
+    drawCategorySeparator
+} from "./rendering/axisRenderer"
+
 import VisualConstructorOptions =
     powerbi.extensibility.visual.VisualConstructorOptions;
 
@@ -365,115 +377,6 @@ export class Visual implements IVisual {
             );
     }
 
-
-    private getNiceStep(
-        min: number
-        ,max: number
-        ,targetTickCounter: number
-    ): number {
-
-            const range =
-                Math.abs(max - min)
-            
-            if (range === 0) {
-                return 1;
-            }
-
-            const roughStep =
-                range / targetTickCounter
-            
-            const magnitude =
-                Math.pow(
-                    10
-                    ,Math.floor(
-                        Math.log10(
-                            roughStep
-                        )
-                    )
-                );
-            
-            const normalized =
-                roughStep / magnitude;
-
-            let niceNormalized: number;
-            
-            if (normalized <= 1) {
-                niceNormalized = 1;
-            }
-
-            else if (normalized <= 2) {
-                niceNormalized = 2;
-            }
-
-            else if (normalized <= 5) {
-                niceNormalized = 5;
-            }
-
-            else {
-                niceNormalized = 10;
-            }
-
-            return (
-                niceNormalized * magnitude
-            );
-
-    }
-
-    private drawCategorySeparator(
-        svg: SVGSVGElement
-        ,x: number
-        ,top: number
-        ,bottom: number
-        ,angled: boolean
-    ): void {
-        const svgNamespace =
-            "http://www.w3.org/2000/svg";
-
-        const path =
-            document.createElementNS(
-                svgNamespace
-                ,"path"
-            );
-        
-        let pathData =
-            `M ${x} ${top} ` +
-            `L ${x} ${bottom}`;
-
-        if (angled) {
-            
-            const extension =
-                18;
-
-            pathData +=
-                ` L ${x + extension} ${bottom + extension}`
-        }
-
-        path.setAttribute(
-            "d"
-            ,pathData
-        );
-
-        path.setAttribute(
-            "fill"
-            ,"none"
-        );
-
-        path.setAttribute(
-            "stroke"
-            ,"#D9D9D9"
-        );
-
-        path.setAttribute(
-            "stroke-width"
-            ,"1"
-        );
-
-        svg.appendChild(
-            path
-        );
-    }
-
-
     private renderChart(
         statistics: BandStatistics[]
         ,width: number
@@ -561,7 +464,7 @@ export class Visual implements IVisual {
             );
 
         const majorStep =
-            this.getNiceStep(
+            getNiceStep(
                 overallMin
                 ,overallMax
                 ,5
@@ -897,7 +800,7 @@ export class Visual implements IVisual {
                     margin.left +
                     xSpacing * i;
 
-                this.drawCategorySeparator(
+                drawCategorySeparator(
                     svg
                     ,separatorX
                     ,margin.top
@@ -1242,7 +1145,7 @@ export class Visual implements IVisual {
             /*
              * Min
              */
-            this.drawMarker(
+            drawMarker(
                 svg
                 ,x
                 ,yScale(stat.min)
@@ -1253,12 +1156,13 @@ export class Visual implements IVisual {
                 ,"Min"
                 ,stat.min
                 ,formatter
+                ,this.tooltipService
             );
 
             /*
              * Max
              */
-            this.drawMarker(
+            drawMarker(
                 svg
                 ,x
                 ,yScale(stat.max)
@@ -1269,12 +1173,13 @@ export class Visual implements IVisual {
                 ,"Max"
                 ,stat.max
                 ,formatter
+                ,this.tooltipService
             );
 
             /*
              * P5 - inverted
              */
-            this.drawMarker(
+            drawMarker(
                 svg
                 ,x
                 ,yScale(stat.p05)
@@ -1285,13 +1190,14 @@ export class Visual implements IVisual {
                 ,"P5"
                 ,stat.p05
                 ,formatter
+                ,this.tooltipService
                 ,true
             );
 
             /*
              * P95
              */
-            this.drawMarker(
+            drawMarker(
                 svg
                 ,x
                 ,yScale(stat.p95)
@@ -1302,12 +1208,13 @@ export class Visual implements IVisual {
                 ,"P95"
                 ,stat.p95
                 ,formatter
+                ,this.tooltipService
             );
 
             /*
              * P33 - inverted
              */
-            this.drawMarker(
+            drawMarker(
                 svg
                 ,x
                 ,yScale(stat.p33)
@@ -1318,13 +1225,14 @@ export class Visual implements IVisual {
                 ,"P33"
                 ,stat.p33
                 ,formatter
+                ,this.tooltipService
                 ,true
             );
 
             /*
              * P67
              */
-            this.drawMarker(
+            drawMarker(
                 svg
                 ,x
                 ,yScale(stat.p67)
@@ -1335,12 +1243,13 @@ export class Visual implements IVisual {
                 ,"P67"
                 ,stat.p67
                 ,formatter
+                ,this.tooltipService
             );
 
             /*
              * Median
              */
-            this.drawMarker(
+            drawMarker(
                 svg
                 ,x
                 ,yScale(stat.p50)
@@ -1351,12 +1260,13 @@ export class Visual implements IVisual {
                 ,"Median"
                 ,stat.p50
                 ,formatter
+                ,this.tooltipService
             );
 
             /*
              * Average
              */
-            this.drawMarker(
+            drawMarker(
                 svg
                 ,x
                 ,yScale(stat.average)
@@ -1367,6 +1277,7 @@ export class Visual implements IVisual {
                 ,"Average"
                 ,stat.average
                 ,formatter
+                ,this.tooltipService
             );
 
             /*
@@ -1419,299 +1330,6 @@ export class Visual implements IVisual {
                 label
             );
         }
-    }
-
-    /**
-     * Draw one statistical marker and attach
-     * a native Power BI tooltip.
-     */
-    private drawMarker(
-        svg: SVGSVGElement
-        ,x: number
-        ,y: number
-        ,size: number
-        ,color: string
-        ,shape: string
-        ,categoryName: string
-        ,statisticName: string
-        ,value: number
-        ,formatter: valueFormatter.IValueFormatter
-        ,inverted: boolean = false
-    ): void {
-
-        const svgNamespace =
-            "http://www.w3.org/2000/svg";
-
-        let marker: SVGElement;
-
-        const hitTarget =
-            document.createElementNS(
-                svgNamespace
-                ,"circle"
-            );
-
-        hitTarget.setAttribute(
-            "cx"
-            ,x.toString()
-        );
-
-        hitTarget.setAttribute(
-            "cy"
-            ,y.toString()
-        );
-
-        hitTarget.setAttribute(
-            "r"
-            ,Math.max(
-                size * 2
-                ,20
-            ).toString()
-        );
-
-        hitTarget.setAttribute(
-            "fill"
-            ,"transparent"
-        );
-
-        hitTarget.setAttribute(
-            "pointer-events"
-            ,"all"
-        );
-
-        /*
-         * Square
-         */
-        if (shape === "square") {
-
-            const square =
-                document.createElementNS(
-                    svgNamespace
-                    ,"rect"
-                );
-
-            square.setAttribute(
-                "x"
-                ,(
-                    x - size
-                ).toString()
-            );
-
-            square.setAttribute(
-                "y"
-                ,(
-                    y - size
-                ).toString()
-            );
-
-            square.setAttribute(
-                "width"
-                ,(
-                    size * 2
-                ).toString()
-            );
-
-            square.setAttribute(
-                "height"
-                ,(
-                    size * 2
-                ).toString()
-            );
-
-            square.setAttribute(
-                "fill"
-                ,color
-            );
-
-            marker = square;
-        }
-
-        /*
-         * Diamond
-         */
-        else if (
-            shape === "diamond"
-        ) {
-
-            const diamond =
-                document.createElementNS(
-                    svgNamespace
-                    ,"polygon"
-                );
-
-            const points = [
-                `${x},${y - size}`
-                ,`${x + size},${y}`
-                ,`${x},${y + size}`
-                ,`${x - size},${y}`
-            ].join(" ");
-
-            diamond.setAttribute(
-                "points"
-                ,points
-            );
-
-            diamond.setAttribute(
-                "fill"
-                ,color
-            );
-
-            marker = diamond;
-        }
-
-        /*
-         * Triangle
-         */
-        else if (
-            shape === "triangle"
-        ) {
-
-            const triangle =
-                document.createElementNS(
-                    svgNamespace
-                    ,"polygon"
-                );
-
-            const points = [
-                `${x},${y - size}`
-                ,`${x + size},${y + size}`
-                ,`${x - size},${y + size}`
-            ].join(" ");
-
-            triangle.setAttribute(
-                "points"
-                ,points
-            );
-
-            triangle.setAttribute(
-                "fill"
-                ,color
-            );
-
-            marker = triangle;
-        }
-
-        /*
-         * Default: Circle
-         */
-        else {
-
-            const circle =
-                document.createElementNS(
-                    svgNamespace
-                    ,"circle"
-                );
-
-            circle.setAttribute(
-                "cx"
-                ,x.toString()
-            );
-
-            circle.setAttribute(
-                "cy"
-                ,y.toString()
-            );
-
-            circle.setAttribute(
-                "r"
-                ,size.toString()
-            );
-
-            circle.setAttribute(
-                "fill"
-                ,color
-            );
-
-            marker = circle;
-        }
-
-        /*
-         * Invert P5 and P33.
-         */
-        if (inverted) {
-
-            marker.setAttribute(
-                "transform"
-                ,`rotate(180 ${x} ${y})`
-            );
-        }
-
-        /*
-         * Make cursor behavior feel interactive.
-         */
-        hitTarget.setAttribute(
-            "cursor"
-            ,"default"
-        );
-
-        /*
-         * Native Power BI tooltip.
-         */
-        hitTarget.addEventListener(
-            "mousemove"
-            ,(
-                event: MouseEvent
-            ) => {
-
-                if (
-                    !this.tooltipService.enabled()
-                ) {
-                    return;
-                }
-
-                const tooltipData:
-                    VisualTooltipDataItem[] = [
-                        {
-                            displayName:
-                                "Category"
-                            ,value:
-                                categoryName
-                        }
-                        ,{
-                            displayName:
-                                statisticName
-                            ,value:
-                                formatter.format(
-                                    value
-                                )
-                        }
-                    ];
-
-                this.tooltipService.show({
-                    coordinates: [
-                        event.clientX
-                        ,event.clientY
-                    ]
-                    ,isTouchEvent: false
-                    ,dataItems: tooltipData
-                    ,identities: []
-                });
-            }
-        );
-
-        hitTarget.addEventListener(
-            "mouseout"
-            ,() => {
-
-                if (
-                    !this.tooltipService.enabled()
-                ) {
-                    return;
-                }
-
-                this.tooltipService.hide({
-                    isTouchEvent: false
-                    ,immediately: true
-                });
-            }
-        );
-
-        svg.appendChild(
-            marker
-        );
-
-        svg.appendChild(
-            hitTarget
-        );
     }
 
     private clearTarget(): void {
