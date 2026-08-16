@@ -36,6 +36,11 @@ import {
     drawLegend    
 } from "./legendRenderer";
 
+import {
+    createSvgElement
+    ,setSvgAttributes
+} from "../utils/svgUtils"
+
 import ITooltipService =
     powerbi.extensibility.ITooltipService;
 
@@ -87,35 +92,30 @@ export function renderChart(
         );
     }
 
-    const svgNamespace =
-        "http://www.w3.org/2000/svg";
-
     const svg =
-        document.createElementNS(
-            svgNamespace
-            ,"svg"
+        createSvgElement(
+            "svg"
         );
 
-    svg.setAttribute(
-        "width"
-        ,width.toString()
+    setSvgAttributes(
+        svg
+        ,{
+            width
+            ,height
+        }
     );
 
-    svg.setAttribute(
-        "height"
-        ,height.toString()
+    target.appendChild(
+        svg
     );
-
-    target.appendChild(svg);
 
     svg.addEventListener(
-        "click",
-        () => {
+        "click"
+        ,() => {
 
             selectionManager.clear();
         }
     );
-
     /*
         * Margins
         *
@@ -460,94 +460,44 @@ export function renderChart(
             * Min-to-max line.
             */
         const line =
-            document.createElementNS(
-                svgNamespace
-                ,"line"
-            );
+            createSvgElement(
+                "line"
+            )
 
-        line.setAttribute(
-            "x1",
-            x.toString()
-        );
-
-        line.setAttribute(
-            "x2",
-            x.toString()
-        );
-
-        line.setAttribute(
-            "y1",
-            yScale(
-                stat.max
-            ).toString()
-        );
-
-        line.setAttribute(
-            "y2",
-            yScale(
-                stat.min
-            ).toString()
-        );
-
-        line.setAttribute(
-            "stroke",
-            lineColor
-        );
-
-        line.setAttribute(
-            "stroke-width",
-            lineThickness.toString()
-        );
+        setSvgAttributes(
+            line
+            ,{
+                x1: x
+                ,x2: x
+                ,y1: yScale(stat.max)
+                ,y2: yScale(stat.min)
+                ,stroke: lineColor
+                ,"stroke-width": lineThickness
+            }
+        )
 
         svg.appendChild(
             line
         );
 
         const lineHitTarget =
-            document.createElementNS(
-                svgNamespace
-                ,"line"
+            createSvgElement(
+                "line"
             );
 
-        lineHitTarget.setAttribute(
-            "x1"
-            ,x.toString()
-        );
-
-        lineHitTarget.setAttribute(
-            "x2"
-            ,x.toString()
-        );
-
-        lineHitTarget.setAttribute(
-            "y1"
-            ,yScale(stat.max).toString()
-        );
-
-        lineHitTarget.setAttribute(
-            "y2"
-            ,yScale(stat.min).toString()
-        );
-
-        lineHitTarget.setAttribute(
-            "stroke"
-            ,"transparent"
-        );
-
-        lineHitTarget.setAttribute(
-            "stroke-width"
-            ,"20"
-        );
-
-        lineHitTarget.setAttribute(
-            "pointer-events"
-            ,"stroke"
-        );
-
-        lineHitTarget.setAttribute(
-            "cursor"
-            ,"pointer"
-        );
+        setSvgAttributes(
+            lineHitTarget
+            ,{
+                x1: x
+                ,x2: x
+                ,y1: yScale(stat.max)
+                ,y2: yScale(stat.min)
+                ,stroke: "transparent"
+                ,"stroke-width": 20
+                ,"pointer-events": "stroke"
+                ,"cursor": "pointer"
+            }
+        )
 
         attachBandTooltip(
             lineHitTarget
