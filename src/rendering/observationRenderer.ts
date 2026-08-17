@@ -23,9 +23,6 @@ import ISelectionManager =
 import ITooltipService =
     powerbi.extensibility.ITooltipService;
 
-import VisualTooltipDataItem =
-    powerbi.extensibility.VisualTooltipDataItem;
-
 export interface ObservationRenderOptions {
     svg: SVGSVGElement;
 

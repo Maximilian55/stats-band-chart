@@ -1,8 +1,12 @@
-import { font } from "powerbi-visuals-utils-formattingutils";
 import {
     drawMarkerShape
     ,MarkerStyle
 } from "./markerRenderer";
+
+import {
+    createSvgElement
+    ,setSvgAttributes
+} from "../utils/svgUtils";
 
 export interface LegendItem {
     label: string;
@@ -31,9 +35,6 @@ export function drawLegend(
         ,fontSize
         ,bold
     } = options;
-
-    const svgNamespace =
-        "http://www.w3.org/2000/svg";
 
     const markerSize =
         Math.max(
@@ -88,47 +89,34 @@ export function drawLegend(
         );
 
         const label =
-            document.createElementNS(
-                svgNamespace
-                ,"text"
+            createSvgElement(
+                "text"
             );
-
+            
         const markerLabelGap =
             Math.max(
                 4
                 ,fontSize * 0.4
             );
-
+        
         const labelX =
             markerX +
             markerSize +
             markerLabelGap;
 
-        label.setAttribute(
-            "x"
-            ,labelX.toString()
-        );
-
-        label.setAttribute(
-            "y"
-            ,y.toString()
-        );
-
-        label.setAttribute(
-            "font-size"
-            ,fontSize.toString()
-        );
-
-        label.setAttribute(
-            "font-weight"
-            ,bold
-                ? "700"
-                : "400"
-        );
-
-        label.setAttribute(
-            "dominant-baseline"
-            ,"middle"
+        setSvgAttributes(
+            label
+            ,{
+                "x": labelX
+                ,"y": y
+                ,"font-size": fontSize
+                ,"font-weight":
+                    bold
+                        ? "700"
+                        : "400"
+                ,"dominant-baseline":
+                    "middle"
+            }
         );
 
         label.textContent =
@@ -143,6 +131,6 @@ export function drawLegend(
             item.label.length *
                 fontSize *
                 0.6 +
-            20;
+            itemGap;
     }
 }

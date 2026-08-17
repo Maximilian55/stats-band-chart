@@ -9,11 +9,18 @@ import {
     valueFormatter
 } from "powerbi-visuals-utils-formattingutils";
 
+import {
+    createSvgElement
+    ,setSvgAttributes
+    ,createHitTarget
+} from "../utils/svgUtils";
+
+import {
+    attachStatisticTooltip
+} from "./tooltipRenderer";
+
 import ITooltipService =
     powerbi.extensibility.ITooltipService;
-
-import VisualTooltipDataItem =
-    powerbi.extensibility.VisualTooltipDataItem;
 
 export interface MarkerStyle {
     fillColor: string;
@@ -85,122 +92,36 @@ export function drawMarker(
     ,inverted: boolean = false
 ): void {
 
-    const svgNamespace =
-        "http://www.w3.org/2000/svg";
-
     // draw marker 
-    drawMarkerShape(
-        svg
-        ,x
-        ,y
-        ,size
-        ,style
-        ,inverted
-    );
+    const marker =
+        drawMarkerShape(
+            svg
+            ,x
+            ,y
+            ,size
+            ,style
+            ,inverted
+        );
 
     // draw invisible hit target for easy tooltip interaction
     const hitTarget =
-        document.createElementNS(
-            svgNamespace
-            ,"circle"
+        createHitTarget(
+            marker
+            ,x
+            ,y
+            ,Math.max(
+                size * 2
+                ,20
+            )
         );
 
-    hitTarget.setAttribute(
-        "cx"
-        ,x.toString()
-    );
-
-    hitTarget.setAttribute(
-        "cy"
-        ,y.toString()
-    );
-
-    hitTarget.setAttribute(
-        "r"
-        ,Math.max(
-            size * 2
-            ,20
-        ).toString()
-    );
-
-    hitTarget.setAttribute(
-        "fill"
-        ,"transparent"
-    );
-
-    hitTarget.setAttribute(
-        "pointer-events"
-        ,"all"
-    );
-
-    /*
-        * Make cursor behavior feel interactive.
-        */
-    hitTarget.setAttribute(
-        "cursor"
-        ,"default"
-    );
-
-    /*
-        * Native Power BI tooltip.
-        */
-    hitTarget.addEventListener(
-        "mousemove"
-        ,(
-            event: MouseEvent
-        ) => {
-
-            if (
-                !tooltipService.enabled()
-            ) {
-                return;
-            }
-
-            const tooltipData:
-                VisualTooltipDataItem[] = [
-                    {
-                        displayName:
-                            "Category"
-                        ,value:
-                            categoryName
-                    }
-                    ,{
-                        displayName:
-                            statisticName
-                        ,value:
-                            formatter.format(
-                                value
-                            )
-                    }
-                ];
-
-            tooltipService.show({
-                coordinates: [
-                    event.clientX
-                    ,event.clientY
-                ]
-                ,isTouchEvent: false
-                ,dataItems: tooltipData
-                ,identities: []
-            });
-        }
-    );
-
-    hitTarget.addEventListener(
-        "mouseout"
-        ,() => {
-
-            if (
-                !tooltipService.enabled()
-            ) {
-                return;
-            }
-
-            tooltipService.hide({
-                isTouchEvent: false
-                ,immediately: true
-            });
-        }
+    attachStatisticTooltip(
+        hitTarget
+        ,tooltipService
+        ,categoryName
+        ,statisticName
+        ,value
+        ,formatter
     );
 
     svg.appendChild(
@@ -217,37 +138,23 @@ export function drawMarkerShape(
     ,inverted: boolean = false
 ): SVGElement {
 
-    const svgNamespace =
-        "http://www.w3.org/2000/svg";
-
     let marker: SVGElement;
 
     if (style.shape === "square") {
 
         const square =
-            document.createElementNS(
-                svgNamespace
-                ,"rect"
+            createSvgElement(
+                "rect"
             );
-
-        square.setAttribute(
-            "x"
-            ,(x - size).toString()
-        );
-
-        square.setAttribute(
-            "y"
-            ,(y - size).toString()
-        );
-
-        square.setAttribute(
-            "width"
-            ,(size * 2).toString()
-        );
-
-        square.setAttribute(
-            "height"
-            ,(size * 2).toString()
+        
+        setSvgAttributes(
+            square
+            ,{
+                x: x - size
+                ,y: y - size
+                ,width: size * 2
+                ,height: size * 2
+            }
         );
 
         marker = square;
@@ -258,9 +165,8 @@ export function drawMarkerShape(
     ) {
 
         const diamond =
-            document.createElementNS(
-                svgNamespace
-                ,"polygon"
+            createSvgElement(
+                "polygon"
             );
 
         const points = [
@@ -268,11 +174,15 @@ export function drawMarkerShape(
             ,`${x + size},${y}`
             ,`${x},${y + size}`
             ,`${x - size},${y}`
-        ].join(" ");
+        ].join(
+            " "
+        );
 
-        diamond.setAttribute(
-            "points"
-            ,points
+        setSvgAttributes(
+            diamond
+            ,{
+                "points": points
+            }
         );
 
         marker = diamond;
@@ -283,20 +193,23 @@ export function drawMarkerShape(
     ) {
 
         const triangle =
-            document.createElementNS(
-                svgNamespace
-                ,"polygon"
+            createSvgElement(
+                "polygon"
             );
 
         const points = [
             `${x},${y - size}`
             ,`${x + size},${y + size}`
             ,`${x - size},${y + size}`
-        ].join(" ");
+        ].join(
+            " "
+        );
 
-        triangle.setAttribute(
-            "points"
-            ,points
+        setSvgAttributes(
+            triangle
+            ,{
+                "points": points
+            }
         );
 
         marker = triangle;
@@ -306,11 +219,10 @@ export function drawMarkerShape(
         style.shape === "chevron"
     ) {
         const chevron =
-            document.createElementNS(
-                svgNamespace
-                ,"polygon"
+            createSvgElement(
+                "polygon"
             );
-        
+
         const points = [
             `${x - size},${y + size * 0.45}`
             ,`${x},${y - size}`
@@ -318,11 +230,15 @@ export function drawMarkerShape(
             ,`${x + size * 0.55},${y + size}`
             ,`${x},${y - size * 0.15}`
             ,`${x - size * 0.55},${y + size}`
-        ].join(" ");
+        ].join(
+            " "
+        );
 
-        chevron.setAttribute(
-            "points"
-            ,points
+        setSvgAttributes(
+            chevron
+            ,{
+                "points": points
+            }
         );
 
         marker = chevron;
@@ -332,29 +248,22 @@ export function drawMarkerShape(
         style.shape === "bar"
     ) {
         const bar =
-            document.createElementNS(
-                svgNamespace
-                ,"rect"
+            createSvgElement(
+                "rect"
             );
 
-        bar.setAttribute(
-            "x"
-            ,(x - size * 1.5).toString()
-        );
-
-        bar.setAttribute(
-            "y"
-            ,(y - size * 0.35).toString()
-        );
-
-        bar.setAttribute(
-            "width"
-            ,(size * 3).toString()
-        );
-
-        bar.setAttribute(
-            "height"
-            ,(size * 0.7).toString()
+        setSvgAttributes(
+            bar
+            ,{
+                "x":
+                    x - size * 1.5
+                ,"y":
+                    y - size * 0.35
+                ,"width":
+                    size * 3
+                ,"height":
+                    size * 0.7
+            }
         );
 
         marker = bar;
@@ -363,24 +272,17 @@ export function drawMarkerShape(
     else {
 
         const circle =
-            document.createElementNS(
-                svgNamespace
-                ,"circle"
+            createSvgElement(
+                "circle"
             );
 
-        circle.setAttribute(
-            "cx"
-            ,x.toString()
-        );
-
-        circle.setAttribute(
-            "cy"
-            ,y.toString()
-        );
-
-        circle.setAttribute(
-            "r"
-            ,size.toString()
+        setSvgAttributes(
+            circle
+            ,{
+                "cx": x
+                ,"cy": y
+                ,"r": size
+            }
         );
 
         marker = circle;
@@ -392,37 +294,32 @@ export function drawMarkerShape(
     const borderOpacity =
         1 - style.borderTransparency / 100;
     
-    marker.setAttribute(
-        "fill"
-        ,style.fillColor
+    setSvgAttributes(
+        marker
+        ,{
+            "fill":
+                style.fillColor
+            ,"fill-opacity":
+                fillOpacity
+            ,"stroke":
+                style.borderColor
+            ,"stroke-opacity":
+                borderOpacity
+            ,"stroke-width":
+                style.borderWidth
+        }
     );
 
-    marker.setAttribute(
-        "fill-opacity"
-        ,fillOpacity.toString()
-    );
+    if (
+        inverted
+    ) {
 
-    marker.setAttribute(
-        "stroke"
-        ,style.borderColor
-    );
-
-    marker.setAttribute(
-        "stroke-opacity"
-        ,borderOpacity.toString()
-    );
-
-    marker.setAttribute(
-        "border-width"
-        ,style.borderWidth.toString()
-    );
-
-
-    if (inverted) {
-
-        marker.setAttribute(
-            "transform"
-            ,`rotate(180 ${x} ${y})`
+        setSvgAttributes(
+            marker
+            ,{
+                "transform":
+                    `rotate(180 ${x} ${y})`
+            }
         );
     }
 

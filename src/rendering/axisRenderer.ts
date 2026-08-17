@@ -4,6 +4,12 @@ import {
     VisualFormattingSettingsModel
 } from "../settings";
 
+import {
+    createSvgElement
+    ,setSvgAttributes
+} from "../utils/svgUtils";
+import { normalizeFileName } from "powerbi-visuals-utils-formattingutils/lib/stringExtensions";
+
 export function drawCategorySeparator(
     svg: SVGSVGElement
     ,x: number
@@ -11,13 +17,10 @@ export function drawCategorySeparator(
     ,bottom: number
     ,angled: boolean
 ): void {
-    const svgNamespace =
-        "http://www.w3.org/2000/svg";
 
     const path =
-        document.createElementNS(
-            svgNamespace
-            ,"path"
+        createSvgElement(
+            "path"
         );
     
     let pathData =
@@ -28,27 +31,17 @@ export function drawCategorySeparator(
         const extension =
             18;
         pathData +=
-            ` L ${x + extension} ${bottom + extension}`
+            ` L ${x + extension} ${bottom + extension}`;
     }
 
-    path.setAttribute(
-        "d"
-        ,pathData
-    );
-
-    path.setAttribute(
-        "fill"
-        ,"none"
-    );
-
-    path.setAttribute(
-        "stroke"
-        ,"#D9D9D9"
-    );
-
-    path.setAttribute(
-        "stroke-width"
-        ,"1"
+    setSvgAttributes(
+        path
+        ,{
+            "d": pathData
+            ,"fill": "none"
+            ,"stroke": "#D9D9D9"
+            ,"stroke-width": 1
+        }
     );
 
     svg.appendChild(
@@ -98,9 +91,6 @@ export function drawYAxis(
         ,formattingSettings
     } = options;
 
-    const svgNamespace =
-        "http://www.w3.org/2000/svg";
-
     if (
         !formattingSettings
             .yAxis
@@ -134,42 +124,22 @@ export function drawYAxis(
         ) {
 
             const gridline =
-                document.createElementNS(
-                    svgNamespace
-                    ,"line"
+                createSvgElement(
+                    "line"
                 );
 
-            gridline.setAttribute(
-                "x1"
-                ,marginLeft.toString()
-            );
-
-            gridline.setAttribute(
-                "x2"
-                ,(
-                    width -
-                    marginRight
-                ).toString()
-            );
-
-            gridline.setAttribute(
-                "y1"
-                ,y.toString()
-            );
-
-            gridline.setAttribute(
-                "y2"
-                ,y.toString()
-            );
-
-            gridline.setAttribute(
-                "stroke"
-                ,"#D9D9D9"
-            );
-
-            gridline.setAttribute(
-                "stroke-width"
-                ,"1"
+            setSvgAttributes(
+                gridline
+                ,{
+                    "x1": marginLeft
+                    ,"x2":
+                        width
+                        - marginRight
+                    ,"y1": y
+                    ,"y2": y
+                    ,"stroke": "#D9D9D9"
+                    ,"stroke-width": 1
+                }
             );
 
             svg.appendChild(
@@ -201,42 +171,22 @@ export function drawYAxis(
                     );
 
                 const minorLine =
-                    document.createElementNS(
-                        svgNamespace
-                        ,"line"
+                    createSvgElement(
+                        "line"
                     );
 
-                minorLine.setAttribute(
-                    "x1"
-                    ,marginLeft.toString()
-                );
-
-                minorLine.setAttribute(
-                    "x2"
-                    ,(
-                        width -
-                        marginRight
-                    ).toString()
-                );
-
-                minorLine.setAttribute(
-                    "y1"
-                    ,minorY.toString()
-                );
-
-                minorLine.setAttribute(
-                    "y2"
-                    ,minorY.toString()
-                );
-
-                minorLine.setAttribute(
-                    "stroke"
-                    ,"#EEEEEE"
-                );
-
-                minorLine.setAttribute(
-                    "stroke-width"
-                    ,"1"
+                setSvgAttributes(
+                    minorLine
+                    ,{
+                        "x1": marginLeft
+                        ,"x2":
+                            width
+                            - marginRight
+                        ,"y1": minorY
+                        ,"y2": minorY
+                        ,"stroke": "#EEEEEE"
+                        ,"stroke-width": 1
+                    }
                 );
 
                 svg.appendChild(
@@ -249,41 +199,23 @@ export function drawYAxis(
          * Tick mark
          */
         const tick =
-            document.createElementNS(
-                svgNamespace
-                ,"line"
+            createSvgElement(
+                "line"
             );
 
-        tick.setAttribute(
-            "x1"
-            ,(
-                marginLeft - 5
-            ).toString()
-        );
-
-        tick.setAttribute(
-            "x2"
-            ,marginLeft.toString()
-        );
-
-        tick.setAttribute(
-            "y1"
-            ,y.toString()
-        );
-
-        tick.setAttribute(
-            "y2"
-            ,y.toString()
-        );
-
-        tick.setAttribute(
-            "stroke"
-            ,"#666666"
-        );
-
-        tick.setAttribute(
-            "stroke-width"
-            ,"1"
+        setSvgAttributes(
+            tick
+            ,{
+                "x1":
+                    marginLeft
+                    - 5
+                ,"x2":
+                    marginLeft
+                ,"y1": y
+                ,"y2": y
+                ,"stroke": "#666666"
+                ,"stroke-width": 1
+            }
         );
 
         svg.appendChild(
@@ -294,40 +226,25 @@ export function drawYAxis(
          * Tick label
          */
         const label =
-            document.createElementNS(
-                svgNamespace
-                ,"text"
+            createSvgElement(
+                "text"
             );
 
-        label.setAttribute(
-            "x"
-            ,(
-                marginLeft - 10
-            ).toString()
-        );
-
-        label.setAttribute(
-            "y"
-            ,y.toString()
-        );
-
-        label.setAttribute(
-            "text-anchor"
-            ,"end"
-        );
-
-        label.setAttribute(
-            "dominant-baseline"
-            ,"middle"
-        );
-
-        label.setAttribute(
-            "font-size"
-            ,formattingSettings
-                .yAxis
-                .fontSize
-                .value
-                .toString()
+        setSvgAttributes(
+            label
+            ,{
+                "x":
+                    marginLeft
+                    - 10
+                ,"y": y
+                ,"text-anchor": "end"
+                ,"dominant-baseline": "middle"
+                ,"font-size":
+                    formattingSettings
+                        .yAxis
+                        .fontSize
+                        .value
+            }
         );
 
         label.textContent =
@@ -344,42 +261,22 @@ export function drawYAxis(
      * Y-axis vertical line
      */
     const axisLine =
-        document.createElementNS(
-            svgNamespace
-            ,"line"
+        createSvgElement(
+            "line"
         );
 
-    axisLine.setAttribute(
-        "x1"
-        ,marginLeft.toString()
-    );
-
-    axisLine.setAttribute(
-        "x2"
-        ,marginLeft.toString()
-    );
-
-    axisLine.setAttribute(
-        "y1"
-        ,marginTop.toString()
-    );
-
-    axisLine.setAttribute(
-        "y2"
-        ,(
-            marginTop +
-            chartHeight
-        ).toString()
-    );
-
-    axisLine.setAttribute(
-        "stroke"
-        ,"#666666"
-    );
-
-    axisLine.setAttribute(
-        "stroke-width"
-        ,"1"
+    setSvgAttributes(
+        axisLine
+        ,{
+            "x1": marginLeft
+            ,"x2": marginLeft
+            ,"y1": marginTop
+            ,"y2":
+                marginTop
+                + chartHeight
+            ,"stroke": "#666666"
+            ,"stroke-width": 1
+        }
     );
 
     svg.appendChild(
@@ -409,42 +306,26 @@ export function drawXAxisLabel(
         ,fontSize
     } = options;
 
-    const svgNamespace =
-        "http://www.w3.org/2000/svg";
-
     const label =
-        document.createElementNS(
-            svgNamespace
-            ,"text"
+        createSvgElement(
+            "text"
         );
 
-    label.setAttribute(
-        "x"
-        ,x.toString()
-    );
-
-    label.setAttribute(
-        "y"
-        ,y.toString()
-    );
-
-    label.setAttribute(
-        "text-anchor"
-        ,rotation === 0
-            ? "middle"
-            : rotation > 0
-                ? "start"
-                : "end"
-    );
-
-    label.setAttribute(
-        "font-size"
-        ,fontSize.toString()
-    );
-
-    label.setAttribute(
-        "transform"
-        ,`rotate(${rotation} ${x} ${y})`
+    setSvgAttributes(
+        label
+        ,{
+            "x": x
+            ,"y": y
+            ,"text-anchor":
+                rotation === 0
+                    ? "middle"
+                    : rotation > 0
+                        ? "start"
+                        : "end"
+            ,"font-size": fontSize
+            ,"transform":
+                `rotate(${rotation} ${x} ${y})`
+        }
     );
 
     label.textContent =

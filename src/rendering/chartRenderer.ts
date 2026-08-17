@@ -39,12 +39,15 @@ import {
 
 import {
     drawObservations
-} from "./observationRenderer"
+} from "./observationRenderer";
 
 import {
-    createSvgElement
+    clearElement
+    ,createSvg
+    ,createSvgElement
     ,setSvgAttributes
-} from "../utils/svgUtils"
+    ,createHitTarget
+} from "../utils/svgUtils";
 
 import ITooltipService =
     powerbi.extensibility.ITooltipService;
@@ -89,26 +92,15 @@ export function renderChart(
         ,selectionManager
     } = options;
 
-    while (
-        target.firstChild
-    ) {
-        target.removeChild(
-            target.firstChild
-        );
-    }
+    clearElement(
+        target
+    );
 
     const svg =
-        createSvgElement(
-            "svg"
-        );
-
-    setSvgAttributes(
-        svg
-        ,{
+        createSvg(
             width
             ,height
-        }
-    );
+        );
 
     target.appendChild(
         svg
@@ -493,23 +485,14 @@ export function renderChart(
         );
 
         const lineHitTarget =
-            createSvgElement(
-                "line"
+            createHitTarget(
+                line
+                ,x
+                ,yScale(
+                    stat.p50
+                )
+                ,20
             );
-
-        setSvgAttributes(
-            lineHitTarget
-            ,{
-                x1: x
-                ,x2: x
-                ,y1: yScale(stat.max)
-                ,y2: yScale(stat.min)
-                ,stroke: "transparent"
-                ,"stroke-width": 20
-                ,"pointer-events": "stroke"
-                ,"cursor": "pointer"
-            }
-        )
 
         if (showStatistics) {
             attachStatisticBandTooltip(
