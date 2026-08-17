@@ -4,27 +4,24 @@ import {
     valueFormatter
 } from "powerbi-visuals-utils-formattingutils";
 
-
 import {
     BandObservation
     ,BandStatistics
 } from "../statistics";
 
-
 import ITooltipService =
     powerbi.extensibility.ITooltipService;
-
 
 import VisualTooltipDataItem =
     powerbi.extensibility.VisualTooltipDataItem;
 
-export function attachObservationTooltip(
+export function attachTooltip(
     element: SVGElement
     ,tooltipService: ITooltipService
-    ,categoryName: string
-    ,observation: BandObservation
-    ,formatter:
-        valueFormatter.IValueFormatter
+    ,getTooltipData:
+        () => VisualTooltipDataItem[]
+    ,selectionIds:
+        powerbi.visuals.ISelectionId[] = []
 ): void {
 
     element.addEventListener(
@@ -39,32 +36,16 @@ export function attachObservationTooltip(
                 return;
             }
 
-            const tooltipData:
-                VisualTooltipDataItem[] = [
-                    {
-                        displayName: "Category"
-                        ,value: categoryName
-                    }
-                    ,{
-                        displayName: "Grain"
-                        ,value: observation.grainValue
-                    }
-                    ,{
-                        displayName: "Value"
-                        ,value: formatter.format(observation.value)
-                    }
-                ];
-
             tooltipService.show({
                 coordinates: [
                     event.clientX
                     ,event.clientY
                 ]
                 ,isTouchEvent: false
-                ,dataItems: tooltipData
-                ,identities: [
-                    observation.selectionId
-                ]
+                ,dataItems:
+                    getTooltipData()
+                ,identities:
+                    selectionIds
             });
         }
     );
@@ -80,10 +61,48 @@ export function attachObservationTooltip(
             }
 
             tooltipService.hide({
-                immediately: true
-                ,isTouchEvent: false
+                "isTouchEvent": false
+                ,"immediately": true
             });
         }
+    );
+}
+
+export function attachObservationTooltip(
+    element: SVGElement
+    ,tooltipService: ITooltipService
+    ,categoryName: string
+    ,observation: BandObservation
+    ,formatter:
+        valueFormatter.IValueFormatter
+): void {
+
+    attachTooltip(
+        element
+        ,tooltipService
+        ,() => [
+            {
+                displayName:
+                    "Category"
+                ,value:
+                    categoryName
+            }
+            ,{
+                displayName:
+                    "Grain"
+                ,value:
+                    observation.grainValue
+            }
+            ,{
+                displayName:
+                    "Value"
+                ,value:
+                    formatter.format(
+                        observation.value
+                    )
+            }
+        ]
+        ,[observation.selectionId]
     );
 }
 
@@ -95,21 +114,16 @@ export function attachObservationBandTooltip(
     ,tooltipService: ITooltipService
     ,categoryName: string
     ,observations: BandObservation[]
-    ,formatter: valueFormatter.IValueFormatter
-    ,limit: number = OBSERVATION_TOOLTIP_LIMIT
+    ,formatter:
+        valueFormatter.IValueFormatter
+    ,limit: number =
+        OBSERVATION_TOOLTIP_LIMIT
 ): void {
 
-    element.addEventListener(
-        "mousemove"
-        ,(
-            event: MouseEvent
-        ) => {
-
-            if (
-                !tooltipService.enabled()
-            ) {
-                return;
-            }
+    attachTooltip(
+        element
+        ,tooltipService
+        ,() => {
 
             const displayedObservations =
                 [...observations]
@@ -144,7 +158,7 @@ export function attachObservationBandTooltip(
                                 )
                         })
                     )
-            ];
+                ];
 
             if (
                 observations.length
@@ -161,140 +175,132 @@ export function attachObservationBandTooltip(
                 });
             }
 
-            tooltipService.show({
-                coordinates: [
-                    event.clientX
-                    ,event.clientY
-                ]
-                ,isTouchEvent: false
-                ,dataItems:
-                    tooltipData
-                ,identities:
-                    observations.map(
-                        observation =>
-                            observation.selectionId
-                    )
-            });
+            return tooltipData;
         }
-    );
-
-    element.addEventListener(
-        "mouseout"
-        ,() => {
-
-            if (
-                !tooltipService.enabled()
-            ) {
-                return;
-            }
-
-            tooltipService.hide({
-                immediately: true
-                ,isTouchEvent: false
-            });
-        }
+        ,observations.map(
+            observation =>
+                observation.selectionId
+        )
     );
 }
 
+export function attachStatisticTooltip(
+    element: SVGElement
+    ,tooltipService: ITooltipService
+    ,categoryName: string
+    ,statisticName: string
+    ,value: number
+    ,formatter:
+        valueFormatter.IValueFormatter
+): void {
 
-export function attachBandTooltip(
-    lineHitTarget: SVGLineElement
+    attachTooltip(
+        element
+        ,tooltipService
+        ,() => [
+            {
+                displayName:
+                    "Category"
+                ,value:
+                    categoryName
+            }
+            ,{
+                displayName:
+                    statisticName
+                ,value:
+                    formatter.format(
+                        value
+                    )
+            }
+        ]
+    );
+}
+
+//TODO: rename to attachStatisticBandTooltip
+export function attachStatisticBandTooltip(
+    element: SVGElement
     ,tooltipService: ITooltipService
     ,categoryName: string
     ,stat: BandStatistics
-    ,formatter: valueFormatter.IValueFormatter
+    ,formatter:
+        valueFormatter.IValueFormatter
 ): void {
-    
-    lineHitTarget.addEventListener(
-        "mousemove"
-        ,(event: MouseEvent) => {
-            if (
-                !tooltipService.enabled()
-            ) {
-                return;
+
+    attachTooltip(
+        element
+        ,tooltipService
+        ,() => [
+            {
+                displayName:
+                    "Category"
+                ,value:
+                    categoryName
             }
-
-            const tooltipData:
-                VisualTooltipDataItem[] = [
-                    {
-                        displayName: "Category"
-                        ,value: categoryName
-                    }
-                    ,{
-                        displayName: "Min"
-                        ,value: formatter.format(
-                            stat.min
-                        )
-                    }
-                    ,{
-                        displayName: "P05"
-                        ,value: formatter.format(
-                            stat.p05
-                        )
-                    }
-                    ,{
-                        displayName: "P33"
-                        ,value: formatter.format(
-                            stat.p33
-                        )
-                    }
-                    ,{
-                        displayName: "P50"
-                        ,value: formatter.format(
-                            stat.p50
-                        )
-                    }
-                    ,{
-                        displayName: "Average"
-                        ,value: formatter.format(
-                            stat.average
-                        )
-                    }
-                    ,{
-                        displayName: "P67"
-                        ,value: formatter.format(
-                            stat.p67
-                        )
-                    }
-                    ,{
-                        displayName: "P95"
-                        ,value: formatter.format(
-                            stat.p95
-                        )
-                    }
-                    ,{
-                        displayName: "Max"
-                        ,value: formatter.format(
-                            stat.max
-                        )
-                    }
-                ];
-
-            tooltipService.show({
-                coordinates: [
-                    event.clientX
-                    ,event.clientY
-                ]
-                ,isTouchEvent: false
-                ,dataItems: tooltipData
-                ,identities: []
-            });
-        }
-    );
-
-    lineHitTarget.addEventListener(
-        "mouseout"
-        ,() => {
-            if (
-                !tooltipService.enabled()
-            ) {
-                return;
+            ,{
+                displayName:
+                    "Min"
+                ,value:
+                    formatter.format(
+                        stat.min
+                    )
             }
-            tooltipService.hide({
-                isTouchEvent: false
-                ,immediately: true
-            });
-        }
+            ,{
+                displayName:
+                    "P05"
+                ,value:
+                    formatter.format(
+                        stat.p05
+                    )
+            }
+            ,{
+                displayName:
+                    "P33"
+                ,value:
+                    formatter.format(
+                        stat.p33
+                    )
+            }
+            ,{
+                displayName:
+                    "P50"
+                ,value:
+                    formatter.format(
+                        stat.p50
+                    )
+            }
+            ,{
+                displayName:
+                    "Average"
+                ,value:
+                    formatter.format(
+                        stat.average
+                    )
+            }
+            ,{
+                displayName:
+                    "P67"
+                ,value:
+                    formatter.format(
+                        stat.p67
+                    )
+            }
+            ,{
+                displayName:
+                    "P95"
+                ,value:
+                    formatter.format(
+                        stat.p95
+                    )
+            }
+            ,{
+                displayName:
+                    "Max"
+                ,value:
+                    formatter.format(
+                        stat.max
+                    )
+            }
+        ]
+        ,stat.selectionIds
     );
-
 }

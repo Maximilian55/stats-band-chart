@@ -29,7 +29,7 @@ import {
 } from "./axisRenderer";
 
 import {
-    attachBandTooltip
+    attachStatisticBandTooltip
     ,attachObservationBandTooltip
 } from "./tooltipRenderer";
 
@@ -512,7 +512,7 @@ export function renderChart(
         )
 
         if (showStatistics) {
-            attachBandTooltip(
+            attachStatisticBandTooltip(
                 lineHitTarget
                 ,tooltipService
                 ,categoryName
