@@ -30,6 +30,7 @@ import {
 
 import {
     attachBandTooltip
+    ,attachObservationBandTooltip
 } from "./tooltipRenderer";
 
 import {
@@ -510,14 +511,24 @@ export function renderChart(
             }
         )
 
-        attachBandTooltip(
-            lineHitTarget
-            ,tooltipService
-            ,categoryName
-            ,stat
-            ,formatters.tooltip
-        );
-
+        if (showStatistics) {
+            attachBandTooltip(
+                lineHitTarget
+                ,tooltipService
+                ,categoryName
+                ,stat
+                ,formatters.tooltip
+            );
+        }
+        else {
+            attachObservationBandTooltip(
+                lineHitTarget
+                ,tooltipService
+                ,categoryName
+                ,stat.observations
+                ,formatters.tooltip
+            );
+        }
         lineHitTarget.addEventListener(
             "click"
             ,(event:MouseEvent) => {
@@ -669,10 +680,13 @@ export function renderChart(
             drawObservations({
                 svg
                 ,x
+                ,categoryName
                 ,observations:
                     stat.observations
                 ,yScale
                 ,size: pointSize
+                ,formatter: formatters.tooltip
+                ,tooltipService
                 ,color: lineColor
                 ,selectionManager
             });

@@ -3,8 +3,8 @@ import { BandChartData } from "./dataModel";
 import powerbi from "powerbi-visuals-api";
 
 export interface BandObservation {
+    grainValue: string;
     value: number;
-
     selectionId:
         powerbi.visuals.ISelectionId;
 }
@@ -56,7 +56,8 @@ export function calculateBandStatistics(
         }
 
         group.observations.push({
-            value: row.value
+            grainValue: row.grainValue
+            ,value: row.value
             ,selectionId: row.selectionId
         });
     }

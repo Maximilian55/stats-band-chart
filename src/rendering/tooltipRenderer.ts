@@ -6,7 +6,8 @@ import {
 
 
 import {
-    BandStatistics
+    BandObservation
+    ,BandStatistics
 } from "../statistics";
 
 
@@ -16,6 +17,184 @@ import ITooltipService =
 
 import VisualTooltipDataItem =
     powerbi.extensibility.VisualTooltipDataItem;
+
+export function attachObservationTooltip(
+    element: SVGElement
+    ,tooltipService: ITooltipService
+    ,categoryName: string
+    ,observation: BandObservation
+    ,formatter:
+        valueFormatter.IValueFormatter
+): void {
+
+    element.addEventListener(
+        "mousemove"
+        ,(
+            event: MouseEvent
+        ) => {
+
+            if (
+                !tooltipService.enabled()
+            ) {
+                return;
+            }
+
+            const tooltipData:
+                VisualTooltipDataItem[] = [
+                    {
+                        displayName: "Category"
+                        ,value: categoryName
+                    }
+                    ,{
+                        displayName: "Grain"
+                        ,value: observation.grainValue
+                    }
+                    ,{
+                        displayName: "Value"
+                        ,value: formatter.format(observation.value)
+                    }
+                ];
+
+            tooltipService.show({
+                coordinates: [
+                    event.clientX
+                    ,event.clientY
+                ]
+                ,isTouchEvent: false
+                ,dataItems: tooltipData
+                ,identities: [
+                    observation.selectionId
+                ]
+            });
+        }
+    );
+
+    element.addEventListener(
+        "mouseout"
+        ,() => {
+
+            if (
+                !tooltipService.enabled()
+            ) {
+                return;
+            }
+
+            tooltipService.hide({
+                immediately: true
+                ,isTouchEvent: false
+            });
+        }
+    );
+}
+
+const OBSERVATION_TOOLTIP_LIMIT =
+    10;
+
+export function attachObservationBandTooltip(
+    element: SVGElement
+    ,tooltipService: ITooltipService
+    ,categoryName: string
+    ,observations: BandObservation[]
+    ,formatter: valueFormatter.IValueFormatter
+    ,limit: number = OBSERVATION_TOOLTIP_LIMIT
+): void {
+
+    element.addEventListener(
+        "mousemove"
+        ,(
+            event: MouseEvent
+        ) => {
+
+            if (
+                !tooltipService.enabled()
+            ) {
+                return;
+            }
+
+            const displayedObservations =
+                [...observations]
+                    .sort(
+                        (
+                            a
+                            ,b
+                        ) =>
+                            b.value
+                            - a.value
+                    )
+                    .slice(
+                        0
+                        ,limit
+                    );
+
+            const tooltipData:
+                VisualTooltipDataItem[] = [
+                    {
+                        displayName:
+                            "Category"
+                        ,value:
+                            categoryName
+                    }
+                    ,...displayedObservations.map(
+                        observation => ({
+                            displayName:
+                                observation.grainValue
+                            ,value:
+                                formatter.format(
+                                    observation.value
+                                )
+                        })
+                    )
+            ];
+
+            if (
+                observations.length
+                > limit
+            ) {
+                tooltipData.push({
+                    displayName:
+                        "Additional values"
+                    ,value:
+                        String(
+                            observations.length
+                            - limit
+                        )
+                });
+            }
+
+            tooltipService.show({
+                coordinates: [
+                    event.clientX
+                    ,event.clientY
+                ]
+                ,isTouchEvent: false
+                ,dataItems:
+                    tooltipData
+                ,identities:
+                    observations.map(
+                        observation =>
+                            observation.selectionId
+                    )
+            });
+        }
+    );
+
+    element.addEventListener(
+        "mouseout"
+        ,() => {
+
+            if (
+                !tooltipService.enabled()
+            ) {
+                return;
+            }
+
+            tooltipService.hide({
+                immediately: true
+                ,isTouchEvent: false
+            });
+        }
+    );
+}
 
 
 export function attachBandTooltip(

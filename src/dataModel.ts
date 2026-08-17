@@ -3,6 +3,7 @@ import powerbi from "powerbi-visuals-api";
 export interface BandChartRow {
     xValues: powerbi.PrimitiveValue[];
     grain: powerbi.PrimitiveValue;
+    grainValue: string;
     value: number;
     selectionId: powerbi.visuals.ISelectionId;
 }

@@ -5,17 +5,33 @@ import {
 } from "../statistics";
 
 import {
+    attachObservationTooltip
+} from "./tooltipRenderer";
+
+import {
     createSvgElement
     ,setSvgAttributes
 } from "../utils/svgUtils";
 
+import {
+    valueFormatter
+} from "powerbi-visuals-utils-formattingutils";
+
 import ISelectionManager =
     powerbi.extensibility.ISelectionManager;
+
+import ITooltipService =
+    powerbi.extensibility.ITooltipService;
+
+import VisualTooltipDataItem =
+    powerbi.extensibility.VisualTooltipDataItem;
 
 export interface ObservationRenderOptions {
     svg: SVGSVGElement;
 
     x: number;
+
+    categoryName: string;
 
     observations:
         BandObservation[];
@@ -29,6 +45,10 @@ export interface ObservationRenderOptions {
 
     color: string;
 
+    formatter: valueFormatter.IValueFormatter;
+
+    tooltipService: ITooltipService;
+
     selectionManager:
         ISelectionManager;
 }
@@ -41,10 +61,13 @@ export function drawObservations(
     const {
         svg
         ,x
+        ,categoryName
         ,observations
         ,yScale
         ,size
         ,color
+        ,formatter
+        ,tooltipService
         ,selectionManager
     } = options;
 
@@ -69,6 +92,14 @@ export function drawObservations(
                 ,"fill": color
                 ,"cursor": "pointer"
             }
+        );
+
+        attachObservationTooltip(
+            dot
+            ,tooltipService
+            ,categoryName
+            ,observation
+            ,formatter
         );
 
         dot.addEventListener(

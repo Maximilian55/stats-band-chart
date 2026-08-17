@@ -87,10 +87,20 @@ export function transformData(
                     ,rowIndex
                 )
                 .createSelectionId();
+            
+        const grain =
+                row[grainIndex];
 
         rows.push({
             xValues: xIndexes.map(index => row[index])
-            ,grain: row[grainIndex]
+            ,grain
+            ,grainValue:
+                grain === null
+                || grain === undefined
+                    ? ""
+                    : String(
+                        grain
+                    )
             ,value: rawValue
             ,selectionId
         });
