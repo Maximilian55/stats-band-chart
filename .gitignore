@@ -2,7 +2,7 @@
 node_modules/
 
 # Power BI build/package output
-dist/
+dist/package.json
 .tmp/
 .temp/
 
